@@ -66,6 +66,10 @@ h6 {
   font-family: var(--font-body);
 }
 
+.font-nunito {
+  font-family: var(--font-nunito);
+}
+
 /* Text Styles  */
 .type-display-d {
   font-family: var(--font-body);
@@ -160,10 +164,9 @@ h6 {
 }
 
 .type-button-1-d {
-  font-family: var(--font-body);
+  font-family: var(--font-nunito);
   font-size: 20px;
   line-height: normal;
-  letter-spacing: 10%;
   font-weight: 400;
 }
 
