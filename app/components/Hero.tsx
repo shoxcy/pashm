@@ -18,7 +18,7 @@ export default function Hero() {
               Lorem ipsum dolor sit amet
             </p>
 
-            <h1 className="text-white text-4xl md:type-h1-italics-d italic font-extralight mb-6">
+            <h1 className="text-white type-h1-italics-d italic font-extralight mb-6">
               The Art of Kashmir, in Every Detail
             </h1>
 
