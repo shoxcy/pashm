@@ -1,26 +1,204 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-heading: var(--font-playfair);
+  --font-body: var(--font-body);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  margin: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+}
+
+/* Variables  */
+:root {
+  --p-1: #12385CFF;
+  --p-2: #B79F58FF;
+  --p-3: #CEBB84FF;
+  --p-4: #D6C78FFF;
+  --p-5: #6E2036FF;
+  --p-6: #F6F3EEFF;
+  /* text-color */
+  --p-7: #0E1822FF;
+  --sc-w-6: #FFFFFF99;
+  --sc-w-5: #FFFFFF80;
+  --sc-w-3: #FFFFFF4D;
+  --sc-w-10: #FFFFFFFF;
+  --sc-b-10: #000000FF;
+  --sc-w-8: #FFFFFFCC;
+  --sc-b-9: #000000E6;
+  --sc-w-4: #FFFFFF66;
+  --sc-b-8: #000000CC;
+  --sc-w-9: #FFFFFFE6;
+  --sc-b-1: #0000001A;
+  --sc-b-6: #00000099;
+  --sc-b-7: #000000B3;
+  --sc-b-5: #00000080;
+  --sc-b-4: #00000066;
+  --sc-b-3: #0000004D;
+  --sc-w-2: #FFFFFF33;
+  --sc-w-7: #FFFFFFB3;
+  --sc-b-2: #00000033;
+  --sc-w-1: #FFFFFF1A;
+  --s-main-error: #D32F2FFF;
+  --s-warning: #FFC107FF;
+  --s-success: #4CAF50FF;
+  --n-3: #DDDDDDFF;
+  --n-2: #949191FF;
+  --n-1: #585858FF;
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* Text Styles  */
+.type-display-d {
+  font-family: var(--font-body);
+  font-size: 64px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 400;
+}
+
+.type-h1-d {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 400;
+}
+
+.type-h1-italics-d {
+  font-family: var(--font-heading);
+  font-size: 48px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.type-h2-d {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 400;
+}
+
+.type-h2-italics-d {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.type-h3-d {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 500;
+}
+
+.type-subhead-d {
+  font-family: var(--font-body);
+  font-size: 20px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 400;
+}
+
+.type-subhead-italics-d {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.type-body-1-d {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 400;
+}
+
+.type-body-2-d {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 400;
+}
+
+.type-body-italics-d {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.type-button-1-d {
+  font-family: var(--font-body);
+  font-size: 20px;
+  line-height: normal;
+  letter-spacing: 10%;
+  font-weight: 400;
+}
+
+.type-button-2-d {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 400;
+}
+
+.type-price {
+  font-family: var(--font-body);
+  font-size: 24px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 400;
+}
+
+.type-helper {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 400;
+}
+
+.type-helper-2-d {
+  font-family: var(--font-body);
+  font-size: 11px;
+  line-height: normal;
+  letter-spacing: 0%;
+  font-weight: 400;
+}
+
+.bg-image {
+  background: linear-gradient(0deg, rgba(14, 24, 34, 0.00) 75.14%, rgba(14, 24, 34, 0.75) 88.78%), linear-gradient(180deg, rgba(14, 24, 34, 0.00) 37.49%, rgba(14, 24, 34, 0.75) 58.62%), url("/assets/hero.png") lightgray -363.323px -171.14px / 156.769% 118.827% no-repeat;
 }
