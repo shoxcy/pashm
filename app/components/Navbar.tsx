@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BsDiscord, BsInstagram, BsSearch, BsTwitterX } from "react-icons/bs";
+import { useCart } from "@/context/CartContext";
 
 type NavLink = { label: string; href: string };
 
@@ -46,14 +47,11 @@ function IconButton({
   );
 }
 
-import { useCart } from "@/context/CartContext";
-
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { itemsCount } = useCart();
 
-  // lock scroll when mobile menu is open
   useEffect(() => {
     if (!open) return;
     const originalOverflow = document.body.style.overflow;
@@ -195,41 +193,41 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                {/* Right */}
                 <div className="flex items-center gap-4 type-h1-d">
                   <div className="flex items-center gap-4 text-white/80 text-[16px] tracking-wide font-medium">
-                    <Link href="/cart">
-                      <span className="inline-flex items-center gap-2 hover:text-white transition-colors cursor-pointer relative">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                          <path
-                            d="M6 7h15l-1.5 8.5H7.2L6 7Z"
-                            stroke="currentColor"
-                            strokeWidth="1.6"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M6 7 5.2 4.8H3"
-                            stroke="currentColor"
-                            strokeWidth="1.6"
-                            strokeLinecap="round"
-                          />
-                          <path
-                            d="M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-                            fill="currentColor"
-                          />
-                        </svg>
-                        <span>Cart</span>
-                        {itemsCount > 0 && (
-                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#D6C78F] text-[9px] font-bold text-white ml-1">
-                            {itemsCount}
-                          </span>
-                        )}
-                      </span>
+                    <Link href="/cart" className="inline-flex items-center gap-2 hover:text-white transition-colors cursor-pointer relative">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M6 7h15l-1.5 8.5H7.2L6 7Z"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M6 7 5.2 4.8H3"
+                          stroke="currentColor"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                        />
+                        <path
+                          d="M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                      <span>Cart</span>
+                      {itemsCount > 0 && (
+                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#D6C78F] text-[9px] font-bold text-white ml-1">
+                          {itemsCount}
+                        </span>
+                      )}
                     </Link>
 
                     <span className="text-white/30 font-light">|</span>
 
-                    <span className="inline-flex items-center gap-2 hover:text-white transition-colors cursor-pointer">
+                    <Link
+                      href="/account"
+                      className="inline-flex items-center gap-2 hover:text-white transition-colors cursor-pointer"
+                    >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                         <path
                           d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z"
@@ -243,8 +241,8 @@ export default function Navbar() {
                           strokeLinecap="round"
                         />
                       </svg>
-                      <Link href="/account">Account</Link>
-                    </span>
+                      <span>Account</span>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -252,16 +250,24 @@ export default function Navbar() {
           </nav>
         </div>
       </header>
-
       {open && (
         <div className="fixed inset-0 z-[999]">
-          <div className="absolute inset-0 bg-black/65" />
+          <div
+            className="absolute inset-0 bg-black/65"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
 
           <div className="absolute inset-x-0 top-0 flex justify-center">
-            <div className="w-full bg-[#f8f5f1] shadow-2xl h-1/2 flex flex-col">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-white/15 bg-[#f8f5f1]">
+            <div
+              className="w-full bg-[#f8f5f1] shadow-2xl h-1/2 flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+            >
+              <div className="flex items-center justify-between px-5 py-4 border-b border-black/10 bg-[#f8f5f1]">
                 <div className="flex items-center gap-3">
-                  <div className="relative h-15 w-15">
+                  <div className="relative h-14 w-14">
                     <Image
                       src="/assets/mobile-menu-logo.svg"
                       alt="PASHM"
@@ -271,7 +277,7 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-white/75">
+                <div className="flex items-center gap-2 text-black/75">
                   <button
                     type="button"
                     aria-label="Search"
@@ -283,7 +289,8 @@ export default function Navbar() {
                   <Link
                     href="/cart"
                     aria-label="Cart"
-                    className="inline-flex h-10 w-10 items-center justify-center hover:text-black transition-colors"
+                    className="inline-flex h-10 w-10 items-center justify-center hover:text-black transition-colors relative"
+                    onClick={() => setOpen(false)}
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                       <path
@@ -299,6 +306,12 @@ export default function Navbar() {
                         strokeLinecap="round"
                       />
                     </svg>
+
+                    {itemsCount > 0 && (
+                      <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#D6C78F] text-[9px] font-bold text-white ring-2 ring-[#f8f5f1]">
+                        {itemsCount}
+                      </span>
+                    )}
                   </Link>
 
                   <button
@@ -326,14 +339,15 @@ export default function Navbar() {
                   <Link
                     key={l.label}
                     href={l.href}
-                    className="block px-6 py-4 text-[15px] font-medium type-h1-d border-b border-black/15 text-black/75"
+                    onClick={() => setOpen(false)}
+                    className="block px-6 py-4 text-[15px] font-medium type-h1-d border-b border-black/15 text-black/75 hover:text-black"
                   >
                     {l.label}
                   </Link>
                 ))}
               </div>
 
-              <div className="px-6 py-4 flex items-center gap-6 border-t border-white/15 bg-[#f8f5f1]">
+              <div className="px-6 py-4 flex items-center gap-6 border-t border-black/10 bg-[#f8f5f1]">
                 <a
                   href="#"
                   className="inline-flex h-10 w-10 items-center justify-center text-black/70 hover:text-black transition-colors"
@@ -358,13 +372,6 @@ export default function Navbar() {
               </div>
             </div>
           </div>
-
-          {/* prevent clicks anywhere else */}
-          <button
-            aria-label="Close menu backdrop"
-            className="absolute inset-0 cursor-default"
-            onClick={() => setOpen(false)}
-          />
         </div>
       )}
     </>

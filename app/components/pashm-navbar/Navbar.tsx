@@ -6,6 +6,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BsDiscord, BsInstagram, BsSearch, BsTwitterX } from "react-icons/bs";
 
+import { useCart } from "../../../context/CartContext";
+
 type NavLink = { label: string; href: string };
 
 const NAV_LINKS: NavLink[] = [
@@ -46,14 +48,11 @@ function IconButton({
   );
 }
 
-import { useCart } from "../../../context/CartContext";
-
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { itemsCount } = useCart();
 
-  // lock scroll when mobile menu is open
   useEffect(() => {
     if (!open) return;
     const originalOverflow = document.body.style.overflow;
@@ -63,7 +62,6 @@ export default function Navbar() {
     };
   }, [open]);
 
-  // close on route change
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
@@ -107,6 +105,7 @@ export default function Navbar() {
                   href="/cart"
                   aria-label="Cart"
                   className="inline-flex h-10 w-10 items-center justify-center text-black/85 hover:text-black transition-colors relative"
+                  onClick={() => setOpen(false)}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <path
@@ -122,6 +121,7 @@ export default function Navbar() {
                       strokeLinecap="round"
                     />
                   </svg>
+
                   {itemsCount > 0 && (
                     <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#D6C78F] text-[9px] font-bold text-black ring-2 ring-[#F6F1E6]">
                       {itemsCount}
@@ -142,10 +142,8 @@ export default function Navbar() {
               </div>
             </div>
 
-            {/* DESKTOP NAV (your existing layout) */}
             <div className="hidden lg:block w-full">
               <div className="flex items-center justify-between">
-                {/* Left: search */}
                 <div className="flex items-center gap-3">
                   <div className="flex items-center text-[16px] type-h1-d gap-2 text-black/75 hover:text-black transition-colors cursor-pointer group">
                     <BsSearch />
@@ -157,7 +155,6 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                {/* Center */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center">
                   <div className="flex items-center gap-12">
                     <div className="flex items-center gap-18 type-h1-d text-black/80">
@@ -198,7 +195,6 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                {/* Right */}
                 <div className="flex items-center gap-4 type-h1-d">
                   <div className="flex items-center gap-4 text-black/80 text-[16px] tracking-wide font-medium">
                     <Link href="/cart">
@@ -232,7 +228,10 @@ export default function Navbar() {
 
                     <span className="text-black/30 font-light">|</span>
 
-                    <span className="inline-flex items-center gap-2 hover:text-black transition-colors cursor-pointer">
+                    <Link
+                      href="/account"
+                      className="inline-flex items-center gap-2 hover:text-black transition-colors cursor-pointer"
+                    >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                         <path
                           d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z"
@@ -246,8 +245,8 @@ export default function Navbar() {
                           strokeLinecap="round"
                         />
                       </svg>
-                      <Link href="/account">Account</Link>
-                    </span>
+                      <span>Account</span>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -258,13 +257,22 @@ export default function Navbar() {
 
       {open && (
         <div className="fixed inset-0 z-[999]">
-          <div className="absolute inset-0 bg-black/65" />
+          <div
+            className="absolute inset-0 bg-black/65"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
 
           <div className="absolute inset-x-0 top-0 flex justify-center">
-            <div className="w-full bg-[#f8f5f1] shadow-2xl h-1/2 flex flex-col">
+            <div
+              className="w-full bg-[#f8f5f1] shadow-2xl h-1/2 flex flex-col"
+              role="dialog"
+              aria-modal="true"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex items-center justify-between px-5 py-4 border-b border-black/15 bg-white/40">
                 <div className="flex items-center gap-3">
-                  <div className="relative h-15 w-15">
+                  <div className="relative h-14 w-14">
                     <Image
                       src="/assets/var2logo.svg"
                       alt="PASHM"
@@ -286,7 +294,8 @@ export default function Navbar() {
                   <Link
                     href="/cart"
                     aria-label="Cart"
-                    className="inline-flex h-10 w-10 items-center justify-center hover:text-black transition-colors"
+                    className="inline-flex h-10 w-10 items-center justify-center hover:text-black transition-colors relative"
+                    onClick={() => setOpen(false)}
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                       <path
@@ -302,6 +311,11 @@ export default function Navbar() {
                         strokeLinecap="round"
                       />
                     </svg>
+                    {itemsCount > 0 && (
+                      <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#D6C78F] text-[9px] font-bold text-black ring-2 ring-[#f8f5f1]">
+                        {itemsCount}
+                      </span>
+                    )}
                   </Link>
 
                   <button
@@ -324,20 +338,19 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {/* Links */}
               <div className="flex-1 overflow-auto">
                 {MOBILE_LINKS.map((l) => (
                   <Link
                     key={l.label}
                     href={l.href}
-                    className="block px-6 py-4 text-[15px] font-medium type-h1-d border-b border-black/15 text-black/75"
+                    onClick={() => setOpen(false)}
+                    className="block px-6 py-4 text-[15px] font-medium type-h1-d border-b border-black/15 text-black/75 hover:text-black"
                   >
                     {l.label}
                   </Link>
                 ))}
               </div>
 
-              {/* Footer icons */}
               <div className="px-6 py-4 flex items-center gap-6 border-t border-black/15 bg-[#f8f5f1]">
                 <a
                   href="#"
@@ -363,13 +376,6 @@ export default function Navbar() {
               </div>
             </div>
           </div>
-
-          {/* prevent clicks anywhere else */}
-          <button
-            aria-label="Close menu backdrop"
-            className="absolute inset-0 cursor-default"
-            onClick={() => setOpen(false)}
-          />
         </div>
       )}
     </>
