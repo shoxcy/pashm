@@ -5,7 +5,7 @@ export default function HomeHeadline() {
         className="
           mx-auto w-full max-w-5xl
           px-5 sm:px-8 md:px-10 lg:px-14
-          py-10 sm:py-14 md:py-16 lg:py-20 xl:py-24
+          py-0 sm:py-14 md:py-16 lg:py-20 xl:py-18
           flex items-center justify-center
         "
       >

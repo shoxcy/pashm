@@ -1,5 +1,6 @@
+import CTA from "./components/CTA";
+import Heritage from "./components/Heritage";
 import Hero from "./components/Hero";
-import HomeHeadline from "./components/HomeHeadline";
 import LauncedProducts from "./components/LaunchedProducts";
 
 export default function Home() {
@@ -7,7 +8,8 @@ export default function Home() {
     <div>
       <Hero/>
       <LauncedProducts/>
-      <HomeHeadline/>
+      <Heritage/>
+      <CTA/>
     </div>
   );
 }
