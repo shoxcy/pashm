@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import React, { useMemo, useState } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { AnimatePresence, motion } from "framer-motion";
@@ -8,6 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 type Product = {
   id: string;
   name: string;
+  slug: string;
   desc: string;
   price: number;
   badge?: "BEST SELLER" | "JUST LAUNCHED";
@@ -18,6 +20,7 @@ const PRODUCTS: Product[] = [
   {
     id: "shilajit",
     name: "Lorem Ipsum Dolor Sitare",
+    slug: "shilajit",
     desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
     price: 6500,
     badge: "BEST SELLER",
@@ -26,6 +29,7 @@ const PRODUCTS: Product[] = [
   {
     id: "saffron",
     name: "Sed Yt Perspiciatis Unde",
+    slug: "saffron-oil",
     desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
     price: 4500,
     badge: "JUST LAUNCHED",
@@ -34,6 +38,7 @@ const PRODUCTS: Product[] = [
   {
     id: "dried-fruit",
     name: "At Cero Eos Eterius",
+    slug: "dry-fruits",
     desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
     price: 5000,
     badge: "JUST LAUNCHED",
@@ -51,9 +56,12 @@ function rotate<T>(arr: T[], startIndex: number) {
   return [...arr.slice(i), ...arr.slice(0, i)];
 }
 
+import { useCart } from "@/context/CartContext";
+
 export default function LauncedProducts() {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
+  const { addToCart } = useCart();
 
   const dots = useMemo(() => Array.from({ length: 4 }), []);
 
@@ -133,21 +141,23 @@ export default function LauncedProducts() {
                     key={p.id}
                     className="flex flex-col items-center text-center"
                   >
-                    <div className="relative h-32 w-32 md:h-40 md:w-40">
-                      <Image
-                        src={p.imageSrc}
-                        alt={p.name}
-                        fill
-                        className={`object-contain drop-shadow-sm ${
-                          p.id === "dried-fruit" ? "scale-[1.1]" : "scale-100"
-                        }`}
-                        sizes="128px"
-                      />
-                    </div>
+                    <Link href={`/products/${p.slug}`} className="cursor-pointer group">
+                      <div className="relative h-32 w-32 md:h-40 md:w-40 transition-transform duration-300 group-hover:scale-105">
+                        <Image
+                          src={p.imageSrc}
+                          alt={p.name}
+                          fill
+                          className={`object-contain drop-shadow-sm ${
+                            p.id === "dried-fruit" ? "scale-[1.1]" : "scale-100"
+                          }`}
+                          sizes="128px"
+                        />
+                      </div>
 
-                    <h3 className="mt-5 font-serif text-[16px] leading-snug text-[#1A2D3A]">
-                      {p.name}
-                    </h3>
+                      <h3 className="mt-5 font-serif text-[16px] leading-snug text-[#1A2D3A] group-hover:text-[#12385C]">
+                        {p.name}
+                      </h3>
+                    </Link>
 
                     <p className="mt-2 max-w-[160px] text-[11px] leading-relaxed text-[#2E3A43]/80">
                       {p.desc}
@@ -160,6 +170,13 @@ export default function LauncedProducts() {
                     <div className="mt-4 w-full">
                       <button
                         type="button"
+                        onClick={() => addToCart({
+                          id: p.id,
+                          title: p.name,
+                          price: p.price,
+                          image: p.imageSrc,
+                          slug: p.slug
+                        })}
                         style={{
                           backgroundImage: "url('/assets/blue-button.png')",
                         }}
@@ -229,21 +246,23 @@ export default function LauncedProducts() {
                     key={p.id}
                     className="flex flex-col items-center text-center"
                   >
-                    <div className="relative h-56 w-56 lg:h-72 lg:w-72  flex items-center justify-center">
-                      <Image
-                        src={p.imageSrc}
-                        alt={p.name}
-                        fill
-                        className={`object-contain drop-shadow-sm ${
-                          p.id === "dried-fruit" ? "scale-[1]" : "scale-100"
-                        }`}
-                        sizes="(max-width: 1024px) 224px, 288px"
-                      />
-                    </div>
+                    <Link href={`/products/${p.slug}`} className="cursor-pointer group">
+                      <div className="relative h-56 w-56 lg:h-72 lg:w-72  flex items-center justify-center">
+                        <Image
+                          src={p.imageSrc}
+                          alt={p.name}
+                          fill
+                          className={`object-contain drop-shadow-sm ${
+                            p.id === "dried-fruit" ? "scale-[1]" : "scale-100"
+                          }`}
+                          sizes="(max-width: 1024px) 224px, 288px"
+                        />
+                      </div>
 
-                    <h3 className="mt-6 font-serif text-lg text-[#1A2D3A]">
-                      {p.name}
-                    </h3>
+                      <h3 className="mt-6 font-serif text-lg text-[#1A2D3A] group-hover:text-[#12385C]">
+                        {p.name}
+                      </h3>
+                    </Link>
 
                     <p className="mt-2 max-w-xs text-xs leading-relaxed text-[#2E3A43]/80 sm:text-sm">
                       {p.desc}
@@ -256,6 +275,13 @@ export default function LauncedProducts() {
                     <div className="mt-6 w-full max-w-sm">
                       <button
                         type="button"
+                        onClick={() => addToCart({
+                          id: p.id,
+                          title: p.name,
+                          price: p.price,
+                          image: p.imageSrc,
+                          slug: p.slug
+                        })}
                         style={{
                           backgroundImage: "url('/assets/blue-button.png')",
                         }}

@@ -46,9 +46,12 @@ function IconButton({
   );
 }
 
+import { useCart } from "@/context/CartContext";
+
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { itemsCount } = useCart();
 
   // lock scroll when mobile menu is open
   useEffect(() => {
@@ -103,7 +106,7 @@ export default function Navbar() {
                 <Link
                   href="/cart"
                   aria-label="Cart"
-                  className="inline-flex h-10 w-10 items-center justify-center text-white/85 hover:text-white transition-colors"
+                  className="inline-flex h-10 w-10 items-center justify-center text-white/85 hover:text-white transition-colors relative"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <path
@@ -119,6 +122,11 @@ export default function Navbar() {
                       strokeLinecap="round"
                     />
                   </svg>
+                  {itemsCount > 0 && (
+                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#D6C78F] text-[9px] font-bold text-white ring-2 ring-[#F6F1E6]">
+                      {itemsCount}
+                    </span>
+                  )}
                 </Link>
 
                 <IconButton label="Open menu" onClick={() => setOpen(true)}>
@@ -134,22 +142,19 @@ export default function Navbar() {
               </div>
             </div>
 
-            {/* DESKTOP NAV (your existing layout) */}
             <div className="hidden lg:block w-full">
               <div className="flex items-center justify-between">
-                {/* Left: search */}
                 <div className="flex items-center gap-3">
                   <div className="flex items-center text-[16px] type-h1-d gap-2 text-white/75 hover:text-white transition-colors cursor-pointer group">
                     <BsSearch />
                     <input
                       type="text"
                       placeholder="Search"
-                      className="bg-transparent border-b border-[#FFFFFF99] focus:outline-none placeholder:text-white/40 w-40"
+                      className="bg-transparent border-b border-white focus:outline-none placeholder:text-white/40 w-40"
                     />
                   </div>
                 </div>
 
-                {/* Center */}
                 <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center">
                   <div className="flex items-center gap-12">
                     <div className="flex items-center gap-18 type-h1-d text-white/80">
@@ -193,27 +198,34 @@ export default function Navbar() {
                 {/* Right */}
                 <div className="flex items-center gap-4 type-h1-d">
                   <div className="flex items-center gap-4 text-white/80 text-[16px] tracking-wide font-medium">
-                    <span className="inline-flex items-center gap-2 hover:text-white transition-colors cursor-pointer">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <path
-                          d="M6 7h15l-1.5 8.5H7.2L6 7Z"
-                          stroke="currentColor"
-                          strokeWidth="1.6"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M6 7 5.2 4.8H3"
-                          stroke="currentColor"
-                          strokeWidth="1.6"
-                          strokeLinecap="round"
-                        />
-                        <path
-                          d="M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                      <Link href="/cart">Cart</Link>
-                    </span>
+                    <Link href="/cart">
+                      <span className="inline-flex items-center gap-2 hover:text-white transition-colors cursor-pointer relative">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                          <path
+                            d="M6 7h15l-1.5 8.5H7.2L6 7Z"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M6 7 5.2 4.8H3"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinecap="round"
+                          />
+                          <path
+                            d="M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                        <span>Cart</span>
+                        {itemsCount > 0 && (
+                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#D6C78F] text-[9px] font-bold text-white ml-1">
+                            {itemsCount}
+                          </span>
+                        )}
+                      </span>
+                    </Link>
 
                     <span className="text-white/30 font-light">|</span>
 
@@ -241,17 +253,13 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* MOBILE MENU: fullscreen overlay + centered half-height panel */}
       {open && (
         <div className="fixed inset-0 z-[999]">
-          {/* Make everything behind unreachable/hidden */}
           <div className="absolute inset-0 bg-black/65" />
 
-          {/* Panel (covers ~half screen height) */}
           <div className="absolute inset-x-0 top-0 flex justify-center">
             <div className="w-full bg-[#f8f5f1] shadow-2xl h-1/2 flex flex-col">
-              {/* Header row */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-black/15 bg-white/40">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-white/15 bg-[#f8f5f1]">
                 <div className="flex items-center gap-3">
                   <div className="relative h-15 w-15">
                     <Image
@@ -263,7 +271,7 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-black/75">
+                <div className="flex items-center gap-2 text-white/75">
                   <button
                     type="button"
                     aria-label="Search"
@@ -297,7 +305,7 @@ export default function Navbar() {
                     type="button"
                     aria-label="Close menu"
                     onClick={() => setOpen(false)}
-                    className="inline-flex h-10 w-10 items-center justify-center hover:text-black transition-colors"
+                    className="inline-flex h-10 w-10 items-center text-black justify-center hover:text-black transition-colors"
                   >
                     <svg
                       width="22"
@@ -313,7 +321,6 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {/* Links */}
               <div className="flex-1 overflow-auto">
                 {MOBILE_LINKS.map((l) => (
                   <Link
@@ -326,8 +333,7 @@ export default function Navbar() {
                 ))}
               </div>
 
-              {/* Footer icons */}
-              <div className="px-6 py-4 flex items-center gap-6 border-t border-black/15 bg-[#f8f5f1]">
+              <div className="px-6 py-4 flex items-center gap-6 border-t border-white/15 bg-[#f8f5f1]">
                 <a
                   href="#"
                   className="inline-flex h-10 w-10 items-center justify-center text-black/70 hover:text-black transition-colors"

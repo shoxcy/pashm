@@ -46,9 +46,12 @@ function IconButton({
   );
 }
 
+import { useCart } from "../../../context/CartContext";
+
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { itemsCount } = useCart();
 
   // lock scroll when mobile menu is open
   useEffect(() => {
@@ -103,7 +106,7 @@ export default function Navbar() {
                 <Link
                   href="/cart"
                   aria-label="Cart"
-                  className="inline-flex h-10 w-10 items-center justify-center text-black/85 hover:text-black transition-colors"
+                  className="inline-flex h-10 w-10 items-center justify-center text-black/85 hover:text-black transition-colors relative"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <path
@@ -119,6 +122,11 @@ export default function Navbar() {
                       strokeLinecap="round"
                     />
                   </svg>
+                  {itemsCount > 0 && (
+                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#D6C78F] text-[9px] font-bold text-black ring-2 ring-[#F6F1E6]">
+                      {itemsCount}
+                    </span>
+                  )}
                 </Link>
 
                 <IconButton label="Open menu" onClick={() => setOpen(true)}>
@@ -193,27 +201,34 @@ export default function Navbar() {
                 {/* Right */}
                 <div className="flex items-center gap-4 type-h1-d">
                   <div className="flex items-center gap-4 text-black/80 text-[16px] tracking-wide font-medium">
-                    <span className="inline-flex items-center gap-2 hover:text-black transition-colors cursor-pointer">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <path
-                          d="M6 7h15l-1.5 8.5H7.2L6 7Z"
-                          stroke="currentColor"
-                          strokeWidth="1.6"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M6 7 5.2 4.8H3"
-                          stroke="currentColor"
-                          strokeWidth="1.6"
-                          strokeLinecap="round"
-                        />
-                        <path
-                          d="M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                      <Link href="/cart">Cart</Link>
-                    </span>
+                    <Link href="/cart">
+                      <span className="inline-flex items-center gap-2 hover:text-black transition-colors cursor-pointer relative">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                          <path
+                            d="M6 7h15l-1.5 8.5H7.2L6 7Z"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M6 7 5.2 4.8H3"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinecap="round"
+                          />
+                          <path
+                            d="M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                            fill="currentColor"
+                          />
+                        </svg>
+                        <span>Cart</span>
+                        {itemsCount > 0 && (
+                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#D6C78F] text-[9px] font-bold text-black ml-1">
+                            {itemsCount}
+                          </span>
+                        )}
+                      </span>
+                    </Link>
 
                     <span className="text-black/30 font-light">|</span>
 

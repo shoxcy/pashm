@@ -27,6 +27,9 @@ export const metadata: Metadata = {
   description: "Experience Kashmir",
 };
 
+import { CartProvider } from "../context/CartContext";
+import { ToastProvider } from "../context/ToastContext";
+
 export default function RootLayout({
   children,
 }: {
@@ -35,7 +38,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${montserrat.variable} ${nunito.variable}`}>
       <body className="font-body antialiased">
-        {children}
+        <ToastProvider>
+          <CartProvider>
+            {children}
+          </CartProvider>
+        </ToastProvider>
       </body>
     </html>
   );

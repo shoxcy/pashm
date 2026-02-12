@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import Navbar from "../components/pashm-navbar/Navbar";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -10,18 +11,21 @@ type TabKey = "new" | "best" | "category" | "filters";
 const productsSeed = [
   {
     id: "p1",
+    slug: "saffron-oil",
     title: "Saron Oil",
     price: 6500,
     img: "/assets/products/saronoil.png",
   },
   {
     id: "p2",
+    slug: "dry-fruits",
     title: "Dry Fruits",
     price: 6500,
     img: "/assets/products/dryfruits.png",
   },
   {
     id: "p3",
+    slug: "shilajit",
     title: "Shilajit",
     price: 6500,
     img: "/assets/products/shilajit.png",
@@ -97,43 +101,76 @@ function GoldButton({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { useCart } from "../../context/CartContext";
+import { useRouter } from "next/navigation";
+
 function ProductCard({
+  id,
   title,
   price,
   img,
+  slug,
 }: {
+  id: string;
   title: string;
   price: number;
   img: string;
+  slug: string;
 }) {
+  const { addToCart } = useCart();
+  const router = useRouter();
+
+  const handleAddToCart = () => {
+    addToCart({
+      id,
+      slug,
+      title,
+      price,
+      image: img,
+    });
+  };
+
+  const handleBuyNow = () => {
+    handleAddToCart();
+    router.push("/cart");
+  };
+
   return (
     <article className="w-full">
-      <div className="flex h-[150px] w-full items-center justify-center">
-        <div className="relative h-[210px] w-[210px] md:h-[220px] md:w-[220px]">
-          <Image
-            src={img}
-            alt={title}
-            fill
-            className="object-contain drop-shadow-sm"
-          />
+      <Link href={`/products/${slug}`}>
+        <div className="flex h-[150px] w-full items-center justify-center cursor-pointer group">
+          <div className="relative h-[210px] w-[210px] md:h-[220px] md:w-[220px]">
+            <Image
+              src={img}
+              alt={title}
+              fill
+              className="object-contain drop-shadow-sm"
+            />
+          </div>
         </div>
-      </div>
+      </Link>
 
       <div className="mt-12 space-y-2">
         <StarRow />
 
         <div className="space-y-[6px]">
-          <h3 className="text-[24px] leading-snug text-[#1A2D3A]">
-            {title}
-          </h3>
+          <Link href={`/products/${slug}`}>
+            <h3 className="text-[24px] leading-snug text-[#1A2D3A] hover:text-[#12385C] transition-colors cursor-pointer">
+              {title}
+            </h3>
+          </Link>
           <div className="text-[14px] tracking-wide text-[#1A2D3A]">
             {formatINR(price)}
           </div>
         </div>
 
         <div className="space-y-2 pt-3">
-          <BlueButton>Add to Cart</BlueButton>
-          <GoldButton>Buy Now</GoldButton>
+          <div onClick={handleAddToCart}>
+            <BlueButton>Add to Cart</BlueButton>
+          </div>
+          <div onClick={handleBuyNow}>
+            <GoldButton>Buy Now</GoldButton>
+          </div>
         </div>
       </div>
     </article>
@@ -469,7 +506,7 @@ export default function Shop() {
   const products = useMemo(() => {
     const list = Array.from({ length: 12 }).map((_, i) => {
       const base = productsSeed[i % 3];
-      return { ...base, id: `${base.id}-${i}` };
+      return { ...base, id: base.id, displayIndex: i };
     });
 
     const q = query.trim().toLowerCase();
@@ -487,7 +524,7 @@ export default function Shop() {
         onClose={() => setFiltersOpen(false)}
       />
 
-      <div className="mx-auto max-w-6xl px-4 pb-16 pt-40 md:pt-60 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 pb-16 pt-40 md:pt-60 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between gap-6">
           <div>
             <h1 className="font-serif text-[30px] text-[#12385C]">Our Products</h1>
@@ -542,13 +579,15 @@ export default function Shop() {
           </div>
         </div>
 
-        <div className="mt-25 grid grid-cols-2 gap-x-6 gap-y-20 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-25 grid grid-cols-2 gap-x-10 gap-y-20 sm:grid-cols-3 lg:grid-cols-4">
           {products.map((p) => (
             <ProductCard
-                  key={p.id}
+                  key={`${p.id}-${p.displayIndex}`}
+                  id={p.id}
                   title={p.title}
                   price={p.price}
                   img={p.img}           
+                  slug={p.slug}
             />
           ))}
         </div>
