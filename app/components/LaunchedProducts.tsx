@@ -105,21 +105,18 @@ export default function LauncedProducts() {
             <FiChevronRight className="h-5 w-5 text-[#143046]" />
           </button>
           <div className="sm:hidden">
-            <div className="grid grid-cols-2 gap-x-6 gap-y-10 pt-8">
+            <div className="grid grid-cols-2 gap-x-20 gap-y-10 pt-8">
               {order.slice(0, 2).map((p) => (
                 <article
                   key={p.id}
                   className="flex flex-col items-center text-center"
                 >
-                  <div className="relative h-60 w-60 md:h-110 md:w-110">
+                  <div className="relative h-30 w-30 md:h-110 md:w-110">
                     <Image
                       src={p.imageSrc}
                       alt={p.name}
                       width={1000000000000}
                       height={100000000000}
-                      className={`drop-shadow-sm ${
-                        p.id === "dried-fruit" ? "scale-[0.52]" : "scale-100"
-                      }`}
                     />
                   </div>
                   <h3 className="mt-5 font-serif text-[16px] leading-snug text-[#1A2D3A]">
