@@ -88,17 +88,26 @@ h6 {
 }
 
 .thin-weight {
-  font-weight: 100 !important;
+  font-weight: 100 !important
 }
 
 .type-h1-italics-d {
   font-family: var(--font-heading);
-  font-size: 48px;
-  line-height: normal;
-  letter-spacing: 0%;
-  font-weight: 400;
   font-style: italic;
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+
+  font-size: clamp(30px, 3.2vw, 48px);
 }
+
+.headline-muted {
+  color: rgba(18, 56, 92, 0.3);
+  font-weight: 200;
+
+  font-size: clamp(20px, 2.6vw, 40px);
+}
+
 
 .type-h2-d {
   font-family: var(--font-heading);
