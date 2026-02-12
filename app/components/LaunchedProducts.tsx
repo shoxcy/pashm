@@ -235,7 +235,7 @@ export default function LauncedProducts() {
                         alt={p.name}
                         fill
                         className={`object-contain drop-shadow-sm ${
-                          p.id === "dried-fruit" ? "scale-[0.5]" : "scale-100"
+                          p.id === "dried-fruit" ? "scale-[1]" : "scale-100"
                         }`}
                         sizes="(max-width: 1024px) 224px, 288px"
                       />
