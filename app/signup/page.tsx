@@ -107,7 +107,7 @@ function CardShell({
   return (
     <div className="w-full">
       <div className="flex items-baseline gap-3">
-        <h2 className="font-serif text-[28px] leading-none text-[#12385C]">
+        <h2 className="font-serif text-[22px] md:text-[28px] leading-none text-[#12385C]">
           {title}
         </h2>
         {inlineMeta ? (
