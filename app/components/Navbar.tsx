@@ -70,10 +70,9 @@ export default function Navbar() {
       <header className="absolute inset-x-0 top-0 z-50">
         <div className="mx-auto w-full max-w-7xl px-5 pt-6 lg:pt-8">
           <nav className="relative flex h-16 lg:h-20 items-center justify-between">
-            {/* MOBILE NAV */}
             <div className="flex w-full items-center justify-between lg:hidden">
               <Link href="/" className="relative flex items-center gap-2">
-                <div className="relative h-10 w-10">
+                <div className="relative h-12 w-12">
                   <Image
                     src="/assets/logo.svg"
                     alt="PASHM"

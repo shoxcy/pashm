@@ -98,8 +98,9 @@ h6 {
 
 .type-h2-d {
   font-family: var(--font-heading);
-  font-size: 32px;
+  font-size: 48px;
   line-height: normal;
+  color: #0E1822FF;
   letter-spacing: 0%;
   font-weight: 400;
 }
@@ -164,6 +165,13 @@ h6 {
 }
 
 .type-button-1-d {
+  font-family: var(--font-nunito);
+  font-size: 20px;
+  line-height: normal;
+  font-weight: 400;
+}
+
+.type-button-1-d-blue-button {
   font-family: var(--font-nunito);
   font-size: 20px;
   line-height: normal;
