@@ -163,7 +163,7 @@ export default function LauncedProducts() {
                         style={{
                           backgroundImage: "url('/assets/blue-button.png')",
                         }}
-                        className="relative w-full bg-[#12385C] bg-blend-multiply py-2 type-button-1-d-blue-button text-white"
+                        className="relative w-full bg-[#12385C] bg-blend-multiply hover:bg-[#12385C]/90 py-2 type-button-1-d-blue-button text-white"
                       >
                         Add to Cart
                         {p.badge && (
@@ -222,14 +222,14 @@ export default function LauncedProducts() {
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                className="grid sm:grid-cols-2 sm:gap-8 lg:grid-cols-3 lg:px-10 will-change-transform"
+                className="grid sm:grid-cols-2 sm:gap-8 lg:grid-cols-3 will-change-transform"
               >
                 {ordered.slice(0, 3).map((p) => (
                   <article
                     key={p.id}
                     className="flex flex-col items-center text-center"
                   >
-                    <div className="relative h-56 w-56 lg:h-72 lg:w-72 flex items-center justify-center">
+                    <div className="relative h-56 w-56 lg:h-72 lg:w-72  flex items-center justify-center">
                       <Image
                         src={p.imageSrc}
                         alt={p.name}
@@ -259,7 +259,7 @@ export default function LauncedProducts() {
                         style={{
                           backgroundImage: "url('/assets/blue-button.png')",
                         }}
-                        className="relative w-full rounded-[2px] bg-[#12385C] bg-blend-multiply py-3 text-[13px] text-white"
+                        className="relative w-full rounded-[2px] bg-[#12385C] hover:bg-[#12385C]/90 bg-blend-multiply py-3 text-[13px] text-white"
                       >
                         Add to Cart
 

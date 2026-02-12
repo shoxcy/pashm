@@ -77,7 +77,7 @@ function BlueButton({ children }: { children: React.ReactNode }) {
     <button
       type="button"
       style={{ backgroundImage: "url('/assets/blue-button.png')" }}
-      className="relative w-full rounded-[2px] bg-[#12385C] hover:bg-[#12385C]/90 bg-blend-multiply text-[15px]! tracking-wide py-2 type-button-1-d-blue-button text-white"
+      className="relative w-full rounded-[2px] bg-[#12385C] hover:bg-[#12385C]/90 bg-blend-multiply text-[13px]! md:text-[15px]! tracking-wide py-2 type-button-1-d-blue-button text-white"
     >
       {children}
       <span className="absolute inset-x-0 bottom-0 h-[2px] bg-white/20" />
@@ -90,7 +90,7 @@ function GoldButton({ children }: { children: React.ReactNode }) {
     <button
       type="button"
       style={{ backgroundImage: "url('/assets/buttonimage.png')" }}
-      className="w-full bg-[#E1C882] hover:bg-[#E1C882]/90 bg-blend-multiply text-[#0E1822FF] text-[15px]! pt-[7px] pb-[7px] pr-[54px] pl-[54px] type-button-1-d tracking-wide"
+      className="w-full bg-[#E1C882] hover:bg-[#E1C882]/90 bg-blend-multiply text-[#0E1822FF] text-[13px]! md:text-[15px]! pt-[7px] pb-[7px] pr-[54px] pl-[54px] type-button-1-d tracking-wide"
     >
       {children}
     </button>
@@ -109,7 +109,7 @@ function ProductCard({
   return (
     <article className="w-full">
       <div className="flex h-[150px] w-full items-center justify-center">
-        <div className="relative h-[120px] w-[120px]">
+        <div className="relative h-[210px] w-[210px] md:h-[220px] md:w-[220px]">
           <Image
             src={img}
             alt={title}
@@ -119,7 +119,7 @@ function ProductCard({
         </div>
       </div>
 
-      <div className="mt-2 space-y-2">
+      <div className="mt-12 space-y-2">
         <StarRow />
 
         <div className="space-y-[6px]">
@@ -131,7 +131,7 @@ function ProductCard({
           </div>
         </div>
 
-        <div className="space-y-2 pt-2">
+        <div className="space-y-2 pt-3">
           <BlueButton>Add to Cart</BlueButton>
           <GoldButton>Buy Now</GoldButton>
         </div>
@@ -542,7 +542,7 @@ export default function Shop() {
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-25 grid grid-cols-2 gap-x-6 gap-y-20 sm:grid-cols-3 lg:grid-cols-4">
           {products.map((p) => (
             <ProductCard
                   key={p.id}
