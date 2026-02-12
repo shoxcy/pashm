@@ -1,0 +1,560 @@
+"use client";
+
+import React, { useMemo, useState } from "react";
+import Image from "next/image";
+import Navbar from "../components/pashm-navbar/Navbar";
+import { AnimatePresence, motion } from "framer-motion";
+
+type TabKey = "new" | "best" | "category" | "filters";
+
+const productsSeed = [
+  {
+    id: "p1",
+    title: "Saron Oil",
+    price: 6500,
+    img: "/assets/products/saronoil.png",
+  },
+  {
+    id: "p2",
+    title: "Dry Fruits",
+    price: 6500,
+    img: "/assets/products/dryfruits.png",
+  },
+  {
+    id: "p3",
+    title: "Shilajit",
+    price: 6500,
+    img: "/assets/products/shilajit.png",
+  },
+];
+
+function formatINR(n: number) {
+  return `RS. ${n.toLocaleString("en-IN")}`;
+}
+
+function StarRow() {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex items-center gap-[2px] text-[19px] text-[#C9A24A]">
+        <span>★</span>
+        <span>★</span>
+        <span>★</span>
+        <span>★</span>
+        <span className="text-[#C9A24A]/40">★</span>
+      </div>
+      <span className="text-[13px] text-[#2E3A43]/55">| 78 reviews</span>
+    </div>
+  );
+}
+
+function TabButton({
+  active,
+  children,
+  onClick,
+}: {
+  active?: boolean;
+  children: React.ReactNode;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "h-7 rounded-[2px] px-15 text-[13px] tracking-wide ring-1 transition",
+        active
+          ? "bg-transparent text-[#2E3A43]/70 ring-[#2E3A43]/20 hover:ring-[#2E3A43]/35"
+          : "bg-transparent text-[#2E3A43]/70 ring-[#2E3A43]/20 hover:ring-[#2E3A43]/35",
+      ].join(" ")}
+    >
+      {children}
+    </button>
+  );
+}
+
+function BlueButton({ children }: { children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      style={{ backgroundImage: "url('/assets/blue-button.png')" }}
+      className="relative w-full rounded-[2px] bg-[#12385C] hover:bg-[#12385C]/90 bg-blend-multiply text-[15px]! tracking-wide py-2 type-button-1-d-blue-button text-white"
+    >
+      {children}
+      <span className="absolute inset-x-0 bottom-0 h-[2px] bg-white/20" />
+    </button>
+  );
+}
+
+function GoldButton({ children }: { children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      style={{ backgroundImage: "url('/assets/buttonimage.png')" }}
+      className="w-full bg-[#E1C882] hover:bg-[#E1C882]/90 bg-blend-multiply text-[#0E1822FF] text-[15px]! pt-[7px] pb-[7px] pr-[54px] pl-[54px] type-button-1-d tracking-wide"
+    >
+      {children}
+    </button>
+  );
+}
+
+function ProductCard({
+  title,
+  price,
+  img,
+}: {
+  title: string;
+  price: number;
+  img: string;
+}) {
+  return (
+    <article className="w-full">
+      <div className="flex h-[150px] w-full items-center justify-center">
+        <div className="relative h-[120px] w-[120px]">
+          <Image
+            src={img}
+            alt={title}
+            fill
+            className="object-contain drop-shadow-sm"
+          />
+        </div>
+      </div>
+
+      <div className="mt-2 space-y-2">
+        <StarRow />
+
+        <div className="space-y-[6px]">
+          <h3 className="text-[24px] leading-snug text-[#1A2D3A]">
+            {title}
+          </h3>
+          <div className="text-[14px] tracking-wide text-[#1A2D3A]">
+            {formatINR(price)}
+          </div>
+        </div>
+
+        <div className="space-y-2 pt-2">
+          <BlueButton>Add to Cart</BlueButton>
+          <GoldButton>Buy Now</GoldButton>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function Pagination() {
+  const pages = [1, 2, 3, 4, 5];
+
+  return (
+    <div className="mt-20 flex items-center justify-center gap-2">
+      {pages.map((p) => {
+        const active = p === 1;
+        return (
+          <button
+            key={p}
+            type="button"
+            className={[
+              "h-12 w-12 rounded-[2px] text-[15px] transition",
+              active
+                ? "bg-[#12385C] text-white"
+                : "bg-transparent text-[#2E3A43]/70 border border-dashed border-[#2E3A43]/35",
+            ].join(" ")}
+          >
+            {p}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function FiltersDrawer({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [catOpen, setCatOpen] = useState(true);
+  const [sortOpen, setSortOpen] = useState(false);
+  const [loremOpen, setLoremOpen] = useState(false);
+
+  const [categories, setCategories] = useState({
+    a: false,
+    b: false,
+    c: false,
+    d: false,
+  });
+
+  const Drawer = (
+    <motion.aside
+      initial={{ x: "100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "100%" }}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      className="fixed right-0 top-0 z-[60] h-[100dvh] w-[92vw] max-w-[420px] bg-[#ffffff] shadow-[0_0_0_1px_rgba(0,0,0,0.04),-12px_0_40px_rgba(0,0,0,0.16)]"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="flex h-full flex-col">
+        <div className="flex items-start justify-between px-7 pt-7">
+          <div className="space-y-1">
+            <div className="type-h2-italics-d text-[14px] text-[#1A2D3A]">
+              Filter &amp; Sort
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              aria-label="Close filters"
+              onClick={onClose}
+              className="grid h-8 w-8 pt-4 place-items-center text-[#2E3A43]/70 hover:text-[#2E3A43]"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M6 6l12 12M18 6L6 18"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6 flex-1 overflow-y-auto px-7 pb-8">
+          <div className="border-t border-[#2E3A43]/15" />
+
+          <button
+            type="button"
+            onClick={() => setCatOpen((v) => !v)}
+            className="flex w-full items-center justify-between py-5"
+          >
+            <div className="text-[12px] tracking-wide text-[#1A2D3A]">
+              Category
+            </div>
+            <motion.span
+              animate={{ rotate: catOpen ? 180 : 0 }}
+              transition={{ duration: 0.18 }}
+              className="text-[#2E3A43]/70"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M6 9l6 6 6-6"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </motion.span>
+          </button>
+
+          <AnimatePresence initial={false}>
+            {catOpen ? (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className="overflow-hidden pb-5"
+              >
+                <div className="space-y-3">
+                  {[
+                    { key: "a", label: "Lorem" },
+                    { key: "b", label: "Lorem" },
+                    { key: "c", label: "Lorem" },
+                    { key: "d", label: "Lorem" },
+                  ].map((c) => (
+                    <label
+                      key={c.key}
+                      className="flex items-center gap-3 text-[12px] text-[#2E3A43]/80"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={categories[c.key as keyof typeof categories]}
+                        onChange={(e) =>
+                          setCategories((s) => ({
+                            ...s,
+                            [c.key]: e.target.checked,
+                          }))
+                        }
+                        className="h-4 w-4 rounded-[2px] border border-[#2E3A43]/35 bg-transparent"
+                      />
+                      <span>{c.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
+          <div className="border-t border-[#2E3A43]/15" />
+
+          <button
+            type="button"
+            onClick={() => setSortOpen((v) => !v)}
+            className="flex w-full items-center justify-between py-5"
+          >
+            <div className="text-[12px] tracking-wide text-[#1A2D3A]">
+              Sort By
+            </div>
+            <motion.span
+              animate={{ rotate: sortOpen ? 180 : 0 }}
+              transition={{ duration: 0.18 }}
+              className="text-[#2E3A43]/70"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M6 9l6 6 6-6"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </motion.span>
+          </button>
+
+          <AnimatePresence initial={false}>
+            {sortOpen ? (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className="overflow-hidden pb-5"
+              >
+                <div className="space-y-3 text-[12px] text-[#2E3A43]/80">
+                  <label className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="sort"
+                      defaultChecked
+                      className="h-4 w-4 border border-[#2E3A43]/35 bg-transparent"
+                    />
+                    <span>Featured</span>
+                  </label>
+                  <label className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="sort"
+                      className="h-4 w-4 border border-[#2E3A43]/35 bg-transparent"
+                    />
+                    <span>Price: Low to High</span>
+                  </label>
+                  <label className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="sort"
+                      className="h-4 w-4 border border-[#2E3A43]/35 bg-transparent"
+                    />
+                    <span>Price: High to Low</span>
+                  </label>
+                  <label className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="sort"
+                      className="h-4 w-4 border border-[#2E3A43]/35 bg-transparent"
+                    />
+                    <span>Newest</span>
+                  </label>
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
+          <div className="border-t border-[#2E3A43]/15" />
+
+          <button
+            type="button"
+            onClick={() => setLoremOpen((v) => !v)}
+            className="flex w-full items-center justify-between py-5"
+          >
+            <div className="text-[12px] tracking-wide text-[#1A2D3A]">
+              Lorem ipsum
+            </div>
+            <motion.span
+              animate={{ rotate: loremOpen ? 180 : 0 }}
+              transition={{ duration: 0.18 }}
+              className="text-[#2E3A43]/70"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M6 9l6 6 6-6"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </motion.span>
+          </button>
+
+          <AnimatePresence initial={false}>
+            {loremOpen ? (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className="overflow-hidden pb-5"
+              >
+                <div className="space-y-3">
+                  {["Lorem", "Lorem", "Lorem"].map((t, i) => (
+                    <label
+                      key={i}
+                      className="flex items-center gap-3 text-[12px] text-[#2E3A43]/80"
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded-[2px] border border-[#2E3A43]/35 bg-transparent"
+                      />
+                      <span>{t}</span>
+                    </label>
+                  ))}
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
+
+        <div className="border-t border-[#2E3A43]/15 px-7 py-5">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="h-11 flex-1 rounded-[2px] border border-dashed border-[#12385C]/45 hover:border-[#12385C]/60 bg-transparent text-[15px] tracking-wide text-[#2E3A43]/70"
+            >
+              Clear Filters
+            </button>
+
+            <button
+              type="button"
+              style={{ backgroundImage: "url('/assets/blue-button.png')" }}
+              className="relative h-11 flex-1 rounded-[2px] bg-[#12385C] hover:bg-[#12385C]/90 bg-blend-multiply text-[15px] tracking-wide text-white"
+              onClick={onClose}
+            >
+              View 50 Products
+              <span className="absolute inset-x-0 bottom-0 h-[2px] bg-white/20" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.aside>
+  );
+
+  return (
+    <AnimatePresence>
+      {open ? (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[55] bg-black/55"
+            onClick={onClose}
+          />
+          {Drawer}
+        </>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
+export default function Shop() {
+  const [query, setQuery] = useState("");
+  const [tab, setTab] = useState<TabKey>("new");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const products = useMemo(() => {
+    const list = Array.from({ length: 12 }).map((_, i) => {
+      const base = productsSeed[i % 3];
+      return { ...base, id: `${base.id}-${i}` };
+    });
+
+    const q = query.trim().toLowerCase();
+    if (!q) return list;
+
+    return list.filter((p) => p.title.toLowerCase().includes(q));
+  }, [query]);
+
+  return (
+    <section className="min-h-screen bg-[#F6F1E6]">
+      <Navbar />
+
+      <FiltersDrawer
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+      />
+
+      <div className="mx-auto max-w-6xl px-4 pb-16 pt-40 md:pt-60 sm:px-6 lg:px-8">
+        <div className="flex items-end justify-between gap-6">
+          <div>
+            <h1 className="font-serif text-[30px] text-[#12385C]">Our Products</h1>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <div className="relative">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search..."
+              className="w-full rounded-[2px] border border-[#2E3A43]/25 bg-transparent px-4 py-3 text-[12px] text-[#1A2D3A] placeholder:text-[#2E3A43]/40 focus:outline"
+            />
+            <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[#2E3A43]/45">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M21 21l-4.3-4.3m1.3-5.2a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              <TabButton active={tab === "new"} onClick={() => setTab("new")}>
+                New Arrivals
+              </TabButton>
+              <TabButton active={tab === "best"} onClick={() => setTab("best")}>
+                Best Sellers
+              </TabButton>
+              <TabButton active={tab === "category"} onClick={() => setTab("category")}>
+                Category
+              </TabButton>
+              <TabButton
+                active={tab === "filters"}
+                onClick={() => {
+                  setTab("filters");
+                  setFiltersOpen(true);
+                }}
+              >
+                All Filters
+              </TabButton>
+            </div>
+
+            <div className="text-[10px] tracking-wide text-[#2E3A43]/55">
+              130 PRODUCTS
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
+          {products.map((p) => (
+            <ProductCard
+                  key={p.id}
+                  title={p.title}
+                  price={p.price}
+                  img={p.img}           
+            />
+          ))}
+        </div>
+
+        <Pagination />
+      </div>
+    </section>
+  );
+}

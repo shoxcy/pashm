@@ -34,7 +34,7 @@ export default function Hero() {
             <Link
               href="/shop"
               style={{ backgroundImage: "url('/assets/buttonimage.png')" }}
-              className="inline-block type-button-1-d tracking-wide translate-x-0 translate-y-10 xl:translate-x-10 lg:translate-y-16 bg-[#E1C882] bg-blend-multiply text-[#0E1822FF] pt-[10px] pb-[10px] pr-[54px] pl-[54px] md:pt-[18px] md:pb-[18px] md:pr-[108px] md:pl-[108px]"
+              className="inline-block type-button-1-d tracking-wide translate-x-0 translate-y-10 xl:translate-x-10 lg:translate-y-14 bg-[#E1C882] bg-blend-multiply text-[#0E1822FF] pt-[10px] pb-[10px] pr-[54px] pl-[54px] md:pt-[18px] md:pb-[18px] md:pr-[108px] md:pl-[108px]"
             >
               Shop All Products
             </Link>

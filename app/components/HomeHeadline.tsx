@@ -1,6 +1,6 @@
 export default function HomeHeadline() {
   return (
-    <section className="w-full bg-[#F6F1E6] overflow-x-hidden">
+    <section className="w-full bg-[#F6F1E6] overflow-x-hidden overflow-y-hidden">
       <div
         className="
           mx-auto w-full max-w-5xl

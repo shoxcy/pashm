@@ -226,3 +226,49 @@ h6 {
 .bg-image {
   background: linear-gradient(0deg, rgba(14, 24, 34, 0.00) 75.14%, rgba(14, 24, 34, 0.75) 88.78%), linear-gradient(180deg, rgba(14, 24, 34, 0.00) 37.49%, rgba(14, 24, 34, 0.75) 58.62%), url("/assets/hero.png") lightgray -363.323px -171.14px / 156.769% 118.827% no-repeat;
 }
+
+@keyframes slideOutLeft {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(-100px);
+    opacity: 0;
+  }
+}
+
+@keyframes slideOutRight {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(100px);
+    opacity: 0;
+  }
+}
+
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-slide-out-left {
+  animation: slideOutLeft 0.3s ease-in-out forwards;
+}
+
+.animate-slide-out-right {
+  animation: slideOutRight 0.3s ease-in-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.5s ease-in-out forwards;
+}
