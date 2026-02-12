@@ -1,4 +1,5 @@
 import Hero from "./components/Hero";
+import HomeHeadline from "./components/HomeHeadline";
 import LauncedProducts from "./components/LaunchedProducts";
 
 export default function Home() {
@@ -6,6 +7,7 @@ export default function Home() {
     <div>
       <Hero/>
       <LauncedProducts/>
+      <HomeHeadline/>
     </div>
   );
 }

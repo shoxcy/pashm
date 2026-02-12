@@ -87,6 +87,10 @@ h6 {
   font-weight: 400;
 }
 
+.thin-weight {
+  font-weight: 100 !important;
+}
+
 .type-h1-italics-d {
   font-family: var(--font-heading);
   font-size: 48px;
