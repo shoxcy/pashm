@@ -1,23 +1,144 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "../components/pashm-navbar/Navbar";
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
+import { useRouter } from "next/navigation";
+import Script from "next/script";
 
 function formatINR(n: number) {
   return `RS. ${n.toLocaleString("en-IN")}`;
 }
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, subtotal } = useCart();
+  const { cart, removeFromCart, updateQuantity, subtotal, clearCart, addToCart, discount, applyCoupon, removeCoupon, total, couponCode } = useCart();
+  const { user, dbUser } = useAuth();
+  const { showToast } = useToast();
+  const router = useRouter();
+
+  const [address, setAddress] = useState("");
+  const [promoInput, setPromoInput] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    if (dbUser?.address) {
+      setAddress(dbUser.address);
+    }
+  }, [dbUser]);
 
   const delivery = 150;
-  const total = subtotal + (cart.length > 0 ? delivery : 0);
+
+  const makePayment = async () => {
+    if (!user) {
+      showToast("Please login or sign up to continue", "error");
+      router.push("/signup");
+      return;
+    }
+
+    if (!address || address.trim().length < 10) {
+      showToast("Please provide a valid delivery address", "error");
+      return;
+    }
+
+    if (cart.length === 0) {
+      showToast("Your cart is empty", "error");
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // 1. Create Order on Razorpay
+      const res = await fetch("/api/razorpay/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: total }),
+      });
+      const orderData = await res.json();
+
+      if (!orderData.id) throw new Error("Failed to create Razorpay order");
+
+      // 2. Save order in DB as pending
+      await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user: user.uid,
+          items: cart.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            price: item.price,
+            qty: item.quantity,
+            image: item.image
+          })),
+          total: total,
+          address: address,
+          razorpayOrderId: orderData.id,
+        }),
+      });
+
+      // 3. Open Razorpay Checkout
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Pashm",
+        description: "Complete your purchase",
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await fetch("/api/razorpay/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              clearCart();
+              showToast("Payment Successful! Order placed.", "success");
+              router.push("/account");
+            } else {
+              showToast("Payment Verification Failed", "error");
+            }
+          } catch (err) {
+            showToast("Error verifying payment", "error");
+          }
+        },
+        prefill: {
+          name: dbUser ? `${dbUser.firstName} ${dbUser.lastName}` : "",
+          email: dbUser?.email || "",
+          contact: dbUser?.phoneNumber || "",
+        },
+        theme: {
+          color: "#12385C",
+        },
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.open();
+
+    } catch (error) {
+      console.error("Payment error:", error);
+      showToast("Something went wrong during checkout", "error");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <section className="min-h-screen bg-[#F6F1E6]">
+      <Script
+        id="razorpay-checkout-js"
+        src="https://checkout.razorpay.com/v1/checkout.js"
+      />
       <Navbar />
 
       <div className="mx-auto w-full max-w-[1180px] px-4 pb-24 pt-40 sm:px-6 lg:px-8 lg:pt-56">
@@ -32,12 +153,14 @@ export default function CartPage() {
                 <p className="mb-8 font-serif text-[22px] text-[#2E3A43]/65">
                   Your cart is empty.
                 </p>
-                <Link
-                  href="/shop"
-                  className="inline-flex items-center justify-center rounded-[2px] bg-[#12385C] px-10 py-3 text-[14px] text-white transition-colors hover:bg-[#12385C]/90"
-                >
-                  Start Shopping
-                </Link>
+                <div className="flex flex-wrap gap-4">
+                  <Link
+                    href="/shop"
+                    className="inline-flex items-center justify-center rounded-[2px] bg-[#12385C] px-10 py-3 text-[14px] text-white transition-colors hover:bg-[#12385C]/90"
+                  >
+                    Start Shopping
+                  </Link>
+                </div>
               </div>
             ) : (
               <div className="space-y-12">
@@ -133,6 +256,13 @@ export default function CartPage() {
                     </span>
                   </div>
 
+                  {discount > 0 && (
+                    <div className="flex items-center justify-between text-green-600">
+                      <span>Discount ({couponCode})</span>
+                      <span>-{formatINR(discount)}</span>
+                    </div>
+                  )}
+
                   <div className="mt-6 h-px w-full bg-black/10" />
 
                   <div className="flex items-center justify-between pt-2">
@@ -156,22 +286,61 @@ export default function CartPage() {
                   <input
                     type="text"
                     placeholder="Enter Code"
+                    value={promoInput}
+                    onChange={(e) => setPromoInput(e.target.value)}
                     className="h-[34px] flex-1 rounded-[2px] border border-[#2E3A43]/25 bg-transparent px-3 text-[12px] text-[#1A2D3A] placeholder:text-[#2E3A43]/45 focus:outline-none focus:border-[#12385C]/45"
                   />
-                  <button
-                    type="button"
-                    aria-label="Apply promo code"
-                    className="h-[34px] w-[58px] text-sm rounded-[2px] border border-[#2E3A43]/25 bg-transparent transition-colors hover:bg-black/5"
-                  >Enter </button>
+                  {couponCode ? (
+                     <button
+                        type="button"
+                        onClick={removeCoupon}
+                        className="h-[34px] px-4 text-[10px] font-bold uppercase rounded-[2px] bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                      >Remove</button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => applyCoupon(promoInput)}
+                      className="h-[34px] w-[58px] text-sm rounded-[2px] border border-[#2E3A43]/25 bg-transparent transition-colors hover:bg-black/5"
+                    >Enter </button>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="text-[13px] font-bold text-[#2E3A43]/55 uppercase">
+                    Delivery Address
+                  </div>
+                  {dbUser?.address && (
+                    <button
+                      type="button"
+                      onClick={() => setAddress(dbUser.address)}
+                      className="text-[10px] font-bold uppercase text-[#12385C] border-[#12385C]/45 border border-dashed p-1 hover:bg-[#12385C]/5"
+                    >
+                      Use Saved Address
+                    </button>
+                  )}
+                </div>
+
+                <div className="mt-5">
+                  <textarea
+                    rows={3}
+                    placeholder="Enter your full delivery address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="w-full rounded-[2px] border border-[#2E3A43]/25 bg-transparent px-3 py-2 text-[12px] text-[#1A2D3A] placeholder:text-[#2E3A43]/45 focus:outline-none focus:border-[#12385C]/45 resize-none"
+                  />
                 </div>
               </div>
 
               <button
                 type="button"
+                onClick={makePayment}
+                disabled={isProcessing}
                 style={{ backgroundImage: "url('/assets/blue-button.png')" }}
-                className="relative w-full rounded-[2px] bg-[#12385C] bg-blend-multiply py-4 text-[17x] text-white transition-colors hover:bg-[#12385C]/95"
+                className={`relative w-full rounded-[2px] bg-[#12385C] bg-blend-multiply py-4 text-[17px] text-white transition-colors hover:bg-[#12385C]/95 ${isProcessing ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                Continue to Checkout
+                {isProcessing ? "Processing..." : "Continue to Checkout"}
                 <span className="absolute inset-x-0 bottom-0 h-[3px] bg-white/20" />
               </button>
               <div className="flex items-center gap-6">

@@ -19,3 +19,27 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export async function POST(request: Request) {
+    try {
+        await dbConnect();
+        const data = await request.json();
+
+        const newOrder = new Order({
+            user: data.user,
+            items: data.items,
+            total: data.total,
+            address: data.address,
+            razorpayOrderId: data.razorpayOrderId,
+            status: "depart",
+            paymentStatus: "pending",
+        });
+
+        await newOrder.save();
+
+        return NextResponse.json({ success: true, order: newOrder });
+    } catch (error: any) {
+        console.error("Error creating order:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
