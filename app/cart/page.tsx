@@ -52,7 +52,6 @@ export default function CartPage() {
     setIsProcessing(true);
 
     try {
-      // 1. Create Order on Razorpay
       const res = await fetch("/api/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -62,7 +61,6 @@ export default function CartPage() {
 
       if (!orderData.id) throw new Error("Failed to create Razorpay order");
 
-      // 2. Save order in DB as pending
       await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -81,7 +79,6 @@ export default function CartPage() {
         }),
       });
 
-      // 3. Open Razorpay Checkout
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderData.amount,
