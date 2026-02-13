@@ -182,18 +182,13 @@ export default function Signup() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.firstName || !formData.lastName || !formData.phoneNumber) {
+    if (!formData.firstName || !formData.lastName || !formData.phoneNumber || (!formData.email && !user?.email)) {
       showToast("Please fill in all required fields", "error");
       return;
     }
 
     try {
       setLoading(true);
-      
-      // If user is not signed in via Google/Firebase yet, we might want to create them
-      // but the requirement says Google auth is in signup page and active when clicking google icon.
-      // If they fill the form and click "Create Account" without Google, we'd need email/password auth.
-      // For now, I'll follow the flow: Google Auth -> Fill Info -> Save to DB.
       
       if (!user) {
          showToast("Please sign in with Google first", "error");
@@ -277,7 +272,7 @@ export default function Signup() {
                   />
                   <Field 
                     label="Email Address" 
-                    optional 
+                    required 
                     value={formData.email} 
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     disabled={!!user?.email}

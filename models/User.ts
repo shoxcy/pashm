@@ -51,8 +51,6 @@ const UserSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-if (mongoose.models.User) {
-    delete (mongoose.models as any).User;
-}
+const User = mongoose.models.User || mongoose.model("User", UserSchema);
 
-export default mongoose.model("User", UserSchema);
+export default User;

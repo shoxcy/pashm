@@ -46,7 +46,17 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true, user });
     } catch (error: any) {
         console.error("Error updating user:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+
+        if (error.code === 11000) {
+            if (error.keyPattern?.email) {
+                return NextResponse.json({ error: "Email already in use by another account." }, { status: 409 });
+            }
+            if (error.keyPattern?.uid) {
+                return NextResponse.json({ error: "User ID already exists." }, { status: 409 });
+            }
+        }
+
+        return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
     }
 }
 
