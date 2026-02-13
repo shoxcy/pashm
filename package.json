@@ -20,6 +20,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/estree": "^1.0.8",
+    "@types/mongoose": "^5.11.97",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
