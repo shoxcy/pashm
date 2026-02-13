@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import Navbar from "../components/pashm-navbar/Navbar";
 
@@ -79,9 +79,15 @@ const INITIAL_FORM: AccountForm = {
   country: "India",
 };
 
+import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import { useRouter } from "next/navigation";
 
 export default function AccountPage() {
+  const { user, dbUser, refreshDbUser, logout, loading } = useAuth();
+  const { showToast } = useToast();
+  const router = useRouter();
+
   const [activeTab, setActiveTab] = useState<Tab>("orders");
   const [mobileOrdersOpen, setMobileOrdersOpen] = useState(true);
   const [mobileInfoOpen, setMobileInfoOpen] = useState(true);
@@ -89,48 +95,166 @@ export default function AccountPage() {
 
   // local “functional” state for Account Info
   const [form, setForm] = useState<AccountForm>(INITIAL_FORM);
+  const [orders, setOrders] = useState<any[]>([]);
   const [isEditingLogin, setIsEditingLogin] = useState(false);
-  const [isEditingPersonal, setIsEditingPersonal] = useState(true);
-  const [isEditingAddress, setIsEditingAddress] = useState(true);
+  const [isEditingPersonal, setIsEditingPersonal] = useState(false);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
-  const { showToast } = useToast();
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/signup");
+    }
+  }, [user, loading, router]);
 
-  const saveLogin = () => {
-    if (!form.email.trim()) return showToast("Please enter your email.");
-    if (!form.currentPassword.trim()) return showToast("Enter current password.");
-    if (form.newPassword.length < 8) return showToast("New password must be 8+ chars.");
-    if (form.newPassword !== form.confirmPassword) return showToast("Passwords do not match.");
-
-    // TODO: connect your API here
-    setForm((p) => ({ ...p, currentPassword: "", newPassword: "", confirmPassword: "" }));
-    setIsEditingLogin(false);
-    showToast("Login info saved.");
+  const fetchOrders = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/orders?uid=${user.uid}`);
+      const data = await res.json();
+      if (data.success) {
+        setOrders(data.orders);
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
   };
 
-  const savePersonal = () => {
+  useEffect(() => {
+    if (user) {
+      fetchOrders();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (dbUser) {
+      setForm({
+        email: dbUser.email || "",
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+        firstName: dbUser.firstName || "",
+        lastName: dbUser.lastName || "",
+        phone: dbUser.phoneNumber || "",
+        address: dbUser.address || "",
+        city: dbUser.city || "",
+        state: dbUser.state || "",
+        pincode: dbUser.pincode || "",
+        country: dbUser.country || "India",
+      });
+    }
+  }, [dbUser]);
+
+  const saveToDb = async (updatedData: Partial<AccountForm>) => {
+    if (!user) return;
+    try {
+      setUpdating(true);
+      const res = await fetch("/api/auth/user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          firstName: updatedData.firstName ?? form.firstName,
+          lastName: updatedData.lastName ?? form.lastName,
+          phoneNumber: updatedData.phone ?? form.phone,
+          address: updatedData.address ?? form.address,
+          city: updatedData.city ?? form.city,
+          state: updatedData.state ?? form.state,
+          pincode: updatedData.pincode ?? form.pincode,
+          country: updatedData.country ?? form.country,
+          authProvider: dbUser?.authProvider || "google",
+          photoURL: user.photoURL,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        await refreshDbUser();
+        return true;
+      } else {
+        throw new Error(data.error || "Failed to update profile");
+      }
+    } catch (error: any) {
+      showToast(error.message, "error");
+      return false;
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const saveLogin = async () => {
+    if (dbUser?.authProvider === "google") {
+        return showToast("Login information is managed by Google.", "error");
+    }
+    // For email/password users (future implementation)
+    showToast("Password change is not available for social logins.", "info");
+    setIsEditingLogin(false);
+  };
+
+  const savePersonal = async () => {
     if (!form.firstName.trim()) return showToast("First name is required.");
     if (!form.lastName.trim()) return showToast("Last name is required.");
     if (!form.phone.trim()) return showToast("Phone number is required.");
-    showToast("Personal info saved.");
-    setIsEditingPersonal(false);
+    
+    const success = await saveToDb({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        phone: form.phone,
+        address: form.address,
+    });
+
+    if (success) {
+        showToast("Personal info saved.");
+        setIsEditingPersonal(false);
+    }
   };
 
-  const saveAddress = () => {
+  const saveAddress = async () => {
     if (!form.address.trim()) return showToast("Address is required.");
     if (!form.city.trim()) return showToast("City is required.");
     if (!form.state.trim()) return showToast("State is required.");
     if (!form.pincode.trim()) return showToast("Pincode is required.");
-    showToast("Address saved.");
-    setIsEditingAddress(false);
+    
+    const success = await saveToDb({
+        address: form.address,
+        city: form.city,
+        state: form.state,
+        pincode: form.pincode,
+        country: form.country,
+    });
+
+    if (success) {
+        showToast("Address saved.");
+        setIsEditingAddress(false);
+    }
   };
 
   const resetAll = () => {
-    setForm(INITIAL_FORM);
+    if (dbUser) {
+        setForm({
+          email: dbUser.email || "",
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+          firstName: dbUser.firstName || "",
+          lastName: dbUser.lastName || "",
+          phone: dbUser.phoneNumber || "",
+          address: dbUser.address || "",
+          city: dbUser.city || "",
+          state: dbUser.state || "",
+          pincode: dbUser.pincode || "",
+          country: dbUser.country || "India",
+        });
+    }
     setIsEditingLogin(false);
-    setIsEditingPersonal(true);
-    setIsEditingAddress(true);
+    setIsEditingPersonal(false);
+    setIsEditingAddress(false);
     showToast("Changes discarded.");
   };
+
+  if (loading) return null;
+  if (!user) return null; // handled by useEffect
 
   return (
     <section className="min-h-screen bg-[#F6F1E6]">
@@ -181,7 +305,10 @@ export default function AccountPage() {
               </button>
             </nav>
 
-            <button className="mt-20 block py-4 text-left text-[12px] font-bold uppercase tracking-widest text-[#2E3A43]/60 underline underline-offset-4 decoration-[#2E3A43]/20 transition-colors hover:text-[#12385C]">
+            <button 
+              onClick={() => logout()}
+              className="mt-20 block py-4 text-left text-[12px] font-bold uppercase tracking-widest text-[#2E3A43]/60 underline underline-offset-4 decoration-[#2E3A43]/20 transition-colors hover:text-[#12385C]"
+            >
               Log Out
             </button>
           </aside>
@@ -213,9 +340,15 @@ export default function AccountPage() {
                 </button>
                 {mobileOrdersOpen && (
                   <div className="space-y-16 px-6 pb-12">
-                    {ORDERS.map((order, idx) => (
-                      <OrderCard key={order.id} order={order} index={idx + 1} isMobile />
-                    ))}
+                    {orders.length > 0 ? (
+                      orders.map((order, idx) => (
+                        <OrderCard key={order._id} order={order} index={idx + 1} isMobile />
+                      ))
+                    ) : (
+                      <div className="text-center py-10 text-[#12385C]/40 italic text-[14px]">
+                        No orders found yet.
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -296,7 +429,10 @@ export default function AccountPage() {
               </div>
 
               <div className="flex justify-center pb-10 pt-16">
-                <button className="text-[14px] font-bold uppercase tracking-widest text-[#2E3A43]/60 underline underline-offset-8 decoration-[#2E3A43]/20">
+                <button 
+                  onClick={() => logout()}
+                  className="text-[14px] font-bold uppercase tracking-widest text-[#2E3A43]/60 underline underline-offset-8 decoration-[#2E3A43]/20"
+                >
                   Log Out
                 </button>
               </div>
@@ -305,9 +441,15 @@ export default function AccountPage() {
             <div className="hidden lg:block">
               {activeTab === "orders" && (
                 <div className="space-y-8">
-                  {ORDERS.map((order) => (
-                    <OrderCard key={order.id} order={order} />
-                  ))}
+                  {orders.length > 0 ? (
+                    orders.map((order, idx) => (
+                      <OrderCard key={order._id} order={order} />
+                    ))
+                  ) : (
+                    <div className="text-center py-20 text-[#12385C]/40 italic">
+                      You haven't placed any orders yet.
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -348,17 +490,20 @@ function OrderCard({
   index,
   isMobile,
 }: {
-  order: OrderItem;
+  order: any;
   index?: number;
   isMobile?: boolean;
 }) {
+  const mainItem = order.items?.[0] || { title: "Order", price: order.total, qty: 1, image: "/assets/products/placeholder.png" };
+  const statusLabel = order.status === "delivered" ? "DELIVERED" : order.status === "shipped" ? "IN SHIPPING" : "PROCESSING";
+
   return (
     <div
       className={`relative flex flex-col rounded-[2px] border border-black/5 bg-[#FAF7F0] shadow-sm ${
         !isMobile ? "lg:flex-row lg:items-start lg:gap-12 lg:p-10" : "gap-6 p-6"
       }`}
     >
-      {isMobile && (
+      {isMobile && index && (
         <div className="absolute left-6 top-4 text-[11px] font-bold text-[#2E3A43]/40">
           #{index}
         </div>
@@ -398,7 +543,7 @@ function OrderCard({
               <span className={order.status === "depart" ? "text-[#12385C]" : ""}>
                 Depart
               </span>
-              <span className={order.status === "shipped" ? "text-[#12385C]" : ""}>
+              <span className={(order.status === "shipped" || order.status === "delivered") ? "text-[#12385C]" : ""}>
                 Shipped
               </span>
               <span className={order.status === "delivered" ? "text-[#12385C]" : ""}>
@@ -439,7 +584,7 @@ function OrderCard({
               <span className={order.status === "depart" ? "text-[#12385C]" : ""}>
                 Depart
               </span>
-              <span className={order.status === "shipped" ? "text-[#12385C]" : ""}>
+              <span className={(order.status === "shipped" || order.status === "delivered") ? "text-[#12385C]" : ""}>
                 Shipped
               </span>
               <span
@@ -458,7 +603,7 @@ function OrderCard({
             isMobile ? "mx-auto h-[180px] w-[180px]" : "h-[120px] w-[120px]"
           }`}
         >
-          <Image src={order.image} alt={order.title} fill className="object-contain" />
+          <Image src={mainItem.image} alt={mainItem.title} fill className="object-contain" />
         </div>
 
         <div className="flex flex-1 flex-col">
@@ -468,7 +613,7 @@ function OrderCard({
                 isMobile ? "text-[26px]" : "text-[28px]"
               } mb-4`}
             >
-              {order.title}
+              {mainItem.title} {order.items?.length > 1 && `+ ${order.items.length - 1} more`}
             </h2>
             <button className="text-[11px] font-medium text-[#2E3A43]/40 underline underline-offset-2 transition-colors hover:text-[#12385C]">
               Need help?
@@ -477,14 +622,14 @@ function OrderCard({
 
           <div className={`space-y-1 text-[#2E3A43]/70 ${isMobile ? "text-[12px]" : "text-[13px]"}`}>
             <div>
-              <span className="font-bold text-[#1A2D3A]">Price:</span>{" "}
-              {formatINR(order.price)}
+              <span className="font-bold text-[#1A2D3A]">Total Amount:</span>{" "}
+              {formatINR(order.total)}
             </div>
             <div>
-              <span className="font-bold text-[#1A2D3A]">Qty:</span> {order.qty}
+              <span className="font-bold text-[#1A2D3A]">Items:</span> {order.items?.length || 0}
             </div>
             <div className="max-w-[260px]">
-              <span className="font-bold text-[#1A2D3A]">Address:</span>{" "}
+              <span className="font-bold text-[#1A2D3A]">Shipping to:</span>{" "}
               {order.address}
             </div>
           </div>
@@ -497,7 +642,7 @@ function OrderCard({
                   : "bg-[#E1D1AD] text-[#12385C]"
               }`}
             >
-              {order.statusLabel}
+              {statusLabel}
             </span>
           </div>
         </div>
@@ -612,9 +757,6 @@ function AccountInfoView({
               <h3 className="text-[16px] font-bold uppercase text-[#12385C]/60">
                 Personal Information
               </h3>
-              <div className="mt-2 text-[8px] font-medium uppercase tracking-widest text-[#2E3A43]/30">
-                * Required information
-              </div>
             </div>
 
             <button

@@ -29,6 +29,7 @@ export const metadata: Metadata = {
 
 import { CartProvider } from "../context/CartContext";
 import { ToastProvider } from "../context/ToastContext";
+import { AuthProvider } from "../context/AuthContext";
 
 export default function RootLayout({
   children,
@@ -38,11 +39,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${montserrat.variable} ${nunito.variable}`}>
       <body className="font-body antialiased">
-        <ToastProvider>
-          <CartProvider>
-            {children}
-          </CartProvider>
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <CartProvider>
+              {children}
+            </CartProvider>
+          </ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );

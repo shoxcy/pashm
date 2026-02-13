@@ -7,6 +7,8 @@ import { usePathname } from "next/navigation";
 import { BsDiscord, BsInstagram, BsSearch, BsTwitterX } from "react-icons/bs";
 import { useCart } from "@/context/CartContext";
 
+import { useAuth } from "@/context/AuthContext";
+
 type NavLink = { label: string; href: string };
 
 const NAV_LINKS: NavLink[] = [
@@ -51,6 +53,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { itemsCount } = useCart();
+  const { user, logout, dbUser } = useAuth();
 
   useEffect(() => {
     if (!open) return;
@@ -224,25 +227,31 @@ export default function Navbar() {
 
                     <span className="text-white/30 font-light">|</span>
 
-                    <Link
-                      href="/account"
-                      className="inline-flex items-center gap-2 hover:text-white transition-colors cursor-pointer"
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <path
-                          d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z"
-                          stroke="currentColor"
-                          strokeWidth="1.6"
-                        />
-                        <path
-                          d="M20 20a8 8 0 0 0-16 0"
-                          stroke="currentColor"
-                          strokeWidth="1.6"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <span>Account</span>
-                    </Link>
+                    {user ? (
+                      <Link href="/account" className="text-[14px] hover:text-[#D6C78F] transition-colors">
+                        Hi, {dbUser?.firstName || user.displayName?.split(" ")[0]}
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/signup"
+                        className="inline-flex items-center gap-2 hover:text-white transition-colors cursor-pointer"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                          <path
+                            d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                          />
+                          <path
+                            d="M20 20a8 8 0 0 0-16 0"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <span>Account</span>
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>
@@ -342,7 +351,7 @@ export default function Navbar() {
                     onClick={() => setOpen(false)}
                     className="block px-6 py-4 text-[15px] font-medium type-h1-d border-b border-black/15 text-black/75 hover:text-black"
                   >
-                    {l.label}
+                    {l.label === "Account" && user ? `Account (${dbUser?.firstName || user.displayName?.split(" ")[0]})` : l.label}
                   </Link>
                 ))}
               </div>
