@@ -6,21 +6,9 @@ import Link from "next/link";
 import Navbar from "../../components/pashm-navbar/Navbar";
 import { BiShare } from "react-icons/bi";
 import { BsShareFill } from "react-icons/bs";
-
-type Product = {
-  id: string;
-  slug: string;
-  title: string;
-  subtitle: string;
-  price: number;
-  images: string[];
-  reviews: number;
-  rating: number; // 0..5
-  description: string;
-  productDetails: string;
-  usage: string;
-  warnings: string;
-};
+import type { DetailedProduct } from "../../../lib/map-product";
+import { useCart } from "../../../context/CartContext";
+import { useRouter } from "next/navigation";
 
 const RECOMMENDED_PRODUCTS = [
   {
@@ -46,11 +34,14 @@ const RECOMMENDED_PRODUCTS = [
   },
 ];
 
-function formatINR(n: number) {
-  return `RS. ${n.toLocaleString("en-IN")}`;
+function formatINR(priceString: string | number) {
+  if (typeof priceString === "string") {
+    return priceString; // Already formatted
+  }
+  return `RS. ${priceString.toLocaleString("en-IN")}`;
 }
 
-function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
+function StarRating({ rating = 4, reviewsCount = 0 }: { rating?: number; reviewsCount?: number }) {
   const safe = Math.max(0, Math.min(5, rating));
   return (
     <div className="flex items-center gap-3">
@@ -64,7 +55,7 @@ function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
           </span>
         ))}
       </div>
-      <span className="text-[18px] text-[#2E3A43]/55">| {reviews} reviews</span>
+      <span className="text-[18px] text-[#2E3A43]/55">| {reviewsCount} reviews</span>
     </div>
   );
 }
@@ -153,29 +144,60 @@ function Accordion({
   );
 }
 
-import { useCart } from "../../../context/CartContext";
-import { useRouter } from "next/navigation";
-
-export default function ProductView({ product }: { product: Product }) {
+export default function ProductView({ product }: { product: DetailedProduct }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [liveReviews, setLiveReviews] = useState<any[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
   const { addToCart } = useCart();
   const router = useRouter();
+
+  const fetchLiveReviews = async () => {
+    try {
+      const res = await fetch(`/api/reviews?productId=${product.id}`);
+      const data = await res.json();
+      setLiveReviews(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchLiveReviews();
+  }, [product.id]);
+
+  const avgRating = useMemo(() => {
+    if (liveReviews.length === 0) return product.rating || 4;
+    const sum = liveReviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+    return sum / liveReviews.length;
+  }, [liveReviews, product.rating]);
 
   const images = useMemo(
     () => (product?.images?.length ? product.images : []),
     [product]
   );
 
+  // Parse price string back to number for cart
+  const priceNumber = parseInt(product.price.replace(/[^0-9]/g, "")) || 0;
+
+  // Check inventory
+  const firstVariant = product.variants?.[0];
+  const inventoryQuantity = firstVariant?.inventory_quantity ?? 100;
+  const isOutOfStock = inventoryQuantity <= 0;
+
   const decrementQty = () => setQuantity((q) => Math.max(1, q - 1));
   const incrementQty = () => setQuantity((q) => q + 1);
 
   const handleAddToCart = () => {
+    if (isOutOfStock) return;
+    
     addToCart({
-      id: product.id,
+      id: firstVariant?.id || product.id,
       slug: product.slug,
       title: product.title,
-      price: product.price,
+      price: priceNumber,
       image: product.images[0],
     }, quantity);
   };
@@ -203,7 +225,7 @@ export default function ProductView({ product }: { product: Product }) {
           <div>
             <div className="flex flex-col-reverse gap-6 sm:flex-row sm:gap-6">
               <div className="flex flex-row gap-4 sm:flex-col sm:gap-4">
-                {images.map((img, idx) => (
+                {images.map((img: string, idx: number) => (
                   <button
                     key={idx}
                     type="button"
@@ -243,7 +265,7 @@ export default function ProductView({ product }: { product: Product }) {
             </div>
 
             <div className="mt-6">
-              <StarRating rating={product.rating} reviews={product.reviews} />
+              <StarRating rating={avgRating} reviewsCount={liveReviews.length} />
             </div>
 
             <div className="mt-6 space-y-5 text-[13px] leading-relaxed text-[#2E3A43]/85">
@@ -297,11 +319,30 @@ export default function ProductView({ product }: { product: Product }) {
             </div>
 
             <div className="mt-10 space-y-4">
-              <div onClick={handleBuyNow}>
-                <BlueButton>Buy Now</BlueButton>
+              <div onClick={isOutOfStock ? undefined : handleBuyNow}>
+                <button
+                  type="button"
+                  disabled={isOutOfStock}
+                  style={{ backgroundImage: "url('/assets/blue-button.png')" }}
+                  className={`relative w-full rounded-[2px] bg-[#12385C] bg-blend-multiply py-3 text-[15px] text-white transition-colors ${
+                    isOutOfStock ? "opacity-50 cursor-not-allowed" : "hover:bg-[#12385C]/92"
+                  }`}
+                >
+                  Buy Now
+                  <span className="absolute inset-x-0 bottom-0 h-[2px] bg-white/20" />
+                </button>
               </div>
-              <div onClick={handleAddToCart}>
-                <GoldButton>Add to Cart</GoldButton>
+              <div onClick={isOutOfStock ? undefined : handleAddToCart}>
+                <button
+                  type="button"
+                  disabled={isOutOfStock}
+                  style={{ backgroundImage: "url('/assets/buttonimage.png')" }}
+                  className={`w-full rounded-[2px] bg-[#E1C882] bg-blend-multiply py-3 text-[15px] text-[#0E1822FF] transition-colors ${
+                    isOutOfStock ? "opacity-50 cursor-not-allowed" : "hover:bg-[#E1C882]/90"
+                  }`}
+                >
+                  Add to Cart
+                </button>
               </div>
             </div>
 
@@ -311,6 +352,16 @@ export default function ProductView({ product }: { product: Product }) {
               <Accordion title="DELIVERY & RETURNS">{product.warnings}</Accordion>
             </div>
           </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-32 border-t border-black/10 pt-16">
+          <ReviewsSection 
+            productId={product.id} 
+            reviews={liveReviews} 
+            loading={reviewsLoading} 
+            onReviewAdded={fetchLiveReviews} 
+          />
         </div>
 
         <div className="mt-32">
@@ -414,5 +465,124 @@ export default function ProductView({ product }: { product: Product }) {
         </div>
       </div>
     </section>
+  );
+}
+
+function ReviewsSection({ 
+    productId, 
+    reviews, 
+    loading, 
+    onReviewAdded 
+  }: { 
+    productId: string;
+    reviews: any[];
+    loading: boolean;
+    onReviewAdded: () => void;
+  }) {
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    userName: "",
+    rating: 5,
+    comment: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, productId }),
+      });
+      if (res.ok) {
+        setFormData({ userName: "", rating: 5, comment: "" });
+        onReviewAdded();
+      }
+    } catch (error) {
+      console.error("Error submitting review:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="grid gap-16 lg:grid-cols-[1fr_1.5fr]">
+      <div>
+        <h2 className="font-serif text-[32px] text-[#12385C] mb-8">Customer Reviews</h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-[13px] font-bold text-[#1A2D3A] uppercase mb-2">Name</label>
+            <input
+              type="text"
+              required
+              value={formData.userName}
+              onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
+              className="w-full bg-white/50 border border-black/10 rounded-[2px] px-4 py-3 text-[14px] focus:outline-none focus:ring-1 focus:ring-[#12385C]"
+              placeholder="Your name"
+            />
+          </div>
+          <div>
+            <label className="block text-[13px] font-bold text-[#1A2D3A] uppercase mb-2">Rating</label>
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, rating: star })}
+                  className={`text-[24px] ${star <= formData.rating ? "text-[#C9A24A]" : "text-[#C9A24A]/25"}`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-[13px] font-bold text-[#1A2D3A] uppercase mb-2">Comment</label>
+            <textarea
+              required
+              value={formData.comment}
+              onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+              className="w-full bg-white/50 border border-black/10 rounded-[2px] px-4 py-3 text-[14px] h-32 resize-none focus:outline-none focus:ring-1 focus:ring-[#12385C]"
+              placeholder="Write your review here..."
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={submitting}
+            className={`w-full bg-[#12385C] text-white py-3 rounded-[2px] text-[15px] font-medium transition-opacity ${submitting ? "opacity-50" : "hover:opacity-90"}`}
+          >
+            {submitting ? "Submitting..." : "Submit Review"}
+          </button>
+        </form>
+      </div>
+
+      <div className="space-y-8">
+        {loading ? (
+          <p className="text-[#2E3A43]/60 italic">Loading reviews...</p>
+        ) : reviews.length === 0 ? (
+          <p className="text-[#2E3A43]/60 italic">No reviews yet. Be the first to review!</p>
+        ) : (
+          reviews.map((review: any) => (
+            <div key={review._id} className="border-b border-black/5 pb-8">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold text-[#1A2D3A]">{review.userName}</span>
+                <span className="text-[12px] text-[#2E3A43]/50">
+                  {new Date(review.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="flex gap-[2px] text-[#C9A24A] text-[18px] mb-3">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span key={star} className={star <= review.rating ? "text-[#C9A24A]" : "text-[#C9A24A]/25"}>
+                    ★
+                  </span>
+                ))}
+              </div>
+              <p className="text-[14px] text-[#2E3A43]/85 leading-relaxed">{review.comment}</p>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
   );
 }

@@ -16,17 +16,15 @@ export default function Hero() {
         <div className="w-full flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10 -translate-y-10 lg:translate-y-20">
           <div className="flex-1 max-w-3xl">
             <p className="text-white/90 type-subhead-italics-d italic font-extralight mb-4">
-              Lorem ipsum dolor sit amet
+              Authentic Himalayan Sourcing
             </p>
 
             <h1 className="text-white type-h1-italics-d italic font-extralight mb-6">
-              The Art of Kashmir, in Every Detail
+              The Art of Kashmir, in Every Details.
             </h1>
 
             <p className="text-white/80 type-body-italics-d italic font-extralight leading-relaxed max-w-2xl">
-              Quis autem vel eum iure reprehenderit qui in ea voluptate velit
-              esse quam nihil molestiae consequatur, vel illum qui dolorem eum
-              fugiat quo voluptas nulla pariatur
+              Premium shilajit, Kashmiri saffron, and carefully selected dry fruits, sourced responsibly, tested for quality, and delivered without compromise.
             </p>
           </div>
 

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "./ToastContext";
+import { medusa } from "../lib/medusa";
 
 export type CartItem = {
   id: string;
@@ -25,14 +26,19 @@ type CartContextType = {
   applyCoupon: (code: string) => boolean;
   removeCoupon: () => void;
   total: number;
+  cartId: string | null;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartId, setCartId] = useState<string | null>(null);
+  const [discount, setDiscount] = useState(0);
+  const [couponCode, setCouponCode] = useState("");
   const { showToast } = useToast();
 
+  // Load cart from localStorage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem("pashm-cart");
     if (savedCart) {
@@ -42,10 +48,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to parse cart", e);
       }
     }
-  }, []);
 
-  const [discount, setDiscount] = useState(0);
-  const [couponCode, setCouponCode] = useState("");
+    // Try to initialize Medusa cart in background
+    const initMedusaCart = async () => {
+      try {
+        const storedCartId = localStorage.getItem("medusa_cart_id");
+        if (storedCartId) {
+          setCartId(storedCartId);
+        } else {
+          // Create new Medusa cart
+          const response = await medusa.store.cart.create({});
+          if (response.cart) {
+            setCartId(response.cart.id);
+            localStorage.setItem("medusa_cart_id", response.cart.id);
+          }
+        }
+      } catch (error) {
+        console.log("Medusa cart initialization skipped:", error);
+      }
+    };
+
+    initMedusaCart();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("pashm-cart", JSON.stringify(cart));
@@ -89,7 +113,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const applyCoupon = (code: string) => {
     const upperCode = code.toUpperCase();
     const validCoupons: Record<string, number> = {
-      "PASHM10": 0.10, "PASHM20": 0.20, "WELCOME": 0.15, "FIRST50": 0.50, 
+      "PASHM10": 0.10, "PASHM20": 0.20, "WELCOME": 0.15, "FIRST50": 0.50,
       "SAVE5": 0.05, "FESTIVE": 0.30, "PASHM500": 500,
       "OFF100": 100, "NEWUSER": 0.10, "PASHMLOVE": 0.15, "PURE10": 0.10,
       "SAFFRON25": 0.25, "NATURAL": 0.12, "HEALTHY": 0.08, "LUXURY20": 0.20,
@@ -140,6 +164,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         applyCoupon,
         removeCoupon,
         total: Math.max(0, subtotal - discount + (cart.length > 0 ? 150 : 0)),
+        cartId,
       }}
     >
       {children}

@@ -1,52 +1,32 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "../components/pashm-navbar/Navbar";
 import { AnimatePresence, motion } from "framer-motion";
+import { medusa } from "../../lib/medusa";
+import { mapProductToFlat, type FlatProduct } from "../../lib/map-product";
 
 type TabKey = "new" | "best" | "category" | "filters";
 
-const productsSeed = [
-  {
-    id: "p1",
-    slug: "saffron-oil",
-    title: "Saron Oil",
-    price: 6500,
-    img: "/assets/products/saronoil.png",
-  },
-  {
-    id: "p2",
-    slug: "dry-fruits",
-    title: "Dry Fruits",
-    price: 6500,
-    img: "/assets/products/dryfruits.png",
-  },
-  {
-    id: "p3",
-    slug: "shilajit",
-    title: "Shilajit",
-    price: 6500,
-    img: "/assets/products/shilajit.png",
-  },
-];
-
-function formatINR(n: number) {
-  return `RS. ${n.toLocaleString("en-IN")}`;
+function formatINR(priceString: string) {
+  // Already formatted from mapper, just return it
+  return priceString;
 }
 
-function StarRow() {
+function StarRow({ rating = 5, reviewsCount = 0 }: { rating?: number; reviewsCount?: number }) {
+  const safeRating = Math.max(0, Math.min(5, rating));
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center gap-[2px] text-[19px] text-[#C9A24A]">
-        <span>★</span>
-        <span>★</span>
-        <span>★</span>
-        <span>★</span>
-        <span className="text-[#C9A24A]/40">★</span>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span key={star} className={star <= safeRating ? "text-[#C9A24A]" : "text-[#C9A24A]/40"}>
+            ★
+          </span>
+        ))}
       </div>
-      <span className="text-[13px] text-[#2E3A43]/55">| 78 reviews</span>
+      <span className="text-[13px] text-[#2E3A43]/55">| {reviewsCount} reviews</span>
     </div>
   );
 }
@@ -94,7 +74,7 @@ function GoldButton({ children }: { children: React.ReactNode }) {
     <button
       type="button"
       style={{ backgroundImage: "url('/assets/buttonimage.png')" }}
-      className="w-full bg-[#E1C882] hover:bg-[#E1C882]/90 bg-blend-multiply text-[#0E1822FF] text-[13px]! md:text-[15px]! pt-[7px] pb-[7px] pr-[54px] pl-[54px] type-button-1-d tracking-wide"
+      className="w-full bg-[#E1C882] hover:bg-[#E1C882]/90 bg-blend-multiply text-[#0E1822FF] text-[11px]! md:text-[13px]! md:text-[15px]! pt-[7px] pb-[7px] pr-[54px] pl-[54px] type-button-1-d tracking-wide"
     >
       {children}
     </button>
@@ -110,22 +90,29 @@ function ProductCard({
   price,
   img,
   slug,
+  rating,
+  reviewsCount
 }: {
   id: string;
   title: string;
-  price: number;
+  price: string;
   img: string;
   slug: string;
+  rating: number;
+  reviewsCount: number;
 }) {
   const { addToCart } = useCart();
   const router = useRouter();
+
+  // Parse price back to number for cart
+  const priceNumber = parseInt(price.replace(/[^0-9]/g, "")) || 0;
 
   const handleAddToCart = () => {
     addToCart({
       id,
       slug,
       title,
-      price,
+      price: priceNumber,
       image: img,
     });
   };
@@ -151,7 +138,7 @@ function ProductCard({
       </Link>
 
       <div className="mt-12 space-y-2">
-        <StarRow />
+        <StarRow rating={rating} reviewsCount={reviewsCount} />
 
         <div className="space-y-[6px]">
           <Link href={`/products/${slug}`}>
@@ -502,18 +489,59 @@ export default function Shop() {
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<TabKey>("new");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [allProducts, setAllProducts] = useState<FlatProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetch products from Medusa on mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const [productRes, reviewsRes] = await Promise.all([
+            medusa.store.product.list({
+                limit: 100,
+                region_id: "reg_01KHDS81C9AB0RD3XK6GW46M7D",
+                fields: "*variants.calculated_price,+variants.prices",
+            }),
+            fetch("/api/reviews").then(res => res.json())
+        ]);
+
+        if (productRes.products) {
+          const mapped = productRes.products.map(mapProductToFlat);
+          
+          if (Array.isArray(reviewsRes)) {
+              mapped.forEach(product => {
+                  const productReviews = reviewsRes.filter((r: any) => r.productId === product.id);
+                  if (productReviews.length > 0) {
+                      product.reviewsCount = productReviews.length;
+                      const sum = productReviews.reduce((acc: number, r: any) => acc + (r.rating || 0), 0);
+                      product.rating = sum / productReviews.length;
+                  }
+              });
+          }
+
+          setAllProducts(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
+        setError("Failed to load products. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // Filter products based on search query
   const products = useMemo(() => {
-    const list = Array.from({ length: 12 }).map((_, i) => {
-      const base = productsSeed[i % 3];
-      return { ...base, id: base.id, displayIndex: i };
-    });
-
     const q = query.trim().toLowerCase();
-    if (!q) return list;
-
-    return list.filter((p) => p.title.toLowerCase().includes(q));
-  }, [query]);
+    if (!q) return allProducts;
+    return allProducts.filter((p) => p.title.toLowerCase().includes(q));
+  }, [query, allProducts]);
 
   return (
     <section className="min-h-screen bg-[#F6F1E6]">
@@ -574,23 +602,58 @@ export default function Shop() {
             </div>
 
             <div className="text-[10px] tracking-wide text-[#2E3A43]/55">
-              130 PRODUCTS
+              {products.length} PRODUCTS
             </div>
           </div>
         </div>
 
-        <div className="mt-25 grid grid-cols-2 gap-x-10 gap-y-20 sm:grid-cols-3 lg:grid-cols-4">
-          {products.map((p) => (
-            <ProductCard
-                  key={`${p.id}-${p.displayIndex}`}
-                  id={p.id}
-                  title={p.title}
-                  price={p.price}
-                  img={p.img}           
-                  slug={p.slug}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="mt-25 grid grid-cols-2 gap-x-10 gap-y-20 sm:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="w-full animate-pulse">
+                <div className="flex h-[150px] w-full items-center justify-center">
+                  <div className="h-[210px] w-[210px] md:h-[220px] md:w-[220px] rounded-[2px] bg-[#2E3A43]/10" />
+                </div>
+                <div className="mt-12 space-y-2">
+                  <div className="h-4 w-24 rounded bg-[#2E3A43]/10" />
+                  <div className="h-6 w-32 rounded bg-[#2E3A43]/10" />
+                  <div className="h-4 w-20 rounded bg-[#2E3A43]/10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="mt-25 flex flex-col items-center justify-center py-20">
+            <div className="text-[18px] text-[#2E3A43]/70">{error}</div>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-6 rounded-[2px] bg-[#12385C] px-8 py-3 text-[15px] text-white hover:bg-[#12385C]/90 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="mt-25 flex flex-col items-center justify-center py-20">
+            <div className="text-[18px] text-[#2E3A43]/70">
+              {query ? "No products found matching your search." : "No products available."}
+            </div>
+          </div>
+        ) : (
+          <div className="mt-25 grid grid-cols-2 gap-x-10 gap-y-20 sm:grid-cols-3 lg:grid-cols-4">
+            {products.map((p, index) => (
+              <ProductCard
+                key={`${p.id}-${index}`}
+                id={p.id}
+                title={p.title}
+                price={p.price}
+                img={p.img}
+                slug={p.slug}
+                rating={p.rating}
+                reviewsCount={p.reviewsCount}
+              />
+            ))}
+          </div>
+        )}
 
         <Pagination />
       </div>

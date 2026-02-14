@@ -31,16 +31,10 @@ export default function Heritage() {
 
             <div className="space-y-5 max-w-md text-[#2E3A43]/80 type-body-1-d leading-relaxed">
               <p>
-                Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                accusantium doloremque laudantium, totam rem aperiam, eaque ipsa
-                quae ab illo inventore veritatis.
+                Kashmir has long been known for its rare natural resources, from high-altitude shilajit formed over centuries, to saffron grown in the fertile fields of Pampore, to hand-selected dry fruits cultivated in mineral-rich soil.
               </p>
               <p>
-                Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit
-                aut fugit, sed quia consequuntur magni dolores eos qui ratione
-                voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem
-                ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia
-                non numquam eius modi.
+                At PASHM, we work closely with trusted local sources to ensure authenticity at every stage. Our products are not mass-produced commodities. They are carefully sourced, minimally processed, and thoroughly quality-checked before reaching you. We believe heritage should be preserved, not commercialized beyond recognition.
               </p>
             </div>
 
@@ -50,7 +44,7 @@ export default function Heritage() {
                 style={{ backgroundImage: "url('/assets/buttonimage.png')" }}
                 className="inline-block type-button-1-d tracking-wide bg-[#E1C882] bg-blend-multiply text-[#0E1822FF] py-[10px] px-[54px]"
               >
-                Discover our Products
+                Explore the Collection
               </Link>
             </div>
           </div>
@@ -84,7 +78,7 @@ export default function Heritage() {
             </div>
             <div className="relative w-[90px] h-[90px] xl:w-[110px] xl:h-[110px] overflow-hidden rounded-sm shadow-sm">
               <Image
-                src="/assets/her4.png"
+                src="/assets/her4.jpg"
                 alt="Heritage thumbnail 4"
                 fill
                 className="object-cover hover:scale-105 transition-transform duration-500"
@@ -177,7 +171,7 @@ export default function Heritage() {
             </div>
             <div className="relative aspect-square w-full overflow-hidden rounded-sm shadow-sm">
               <Image
-                src="/assets/her4.png"
+                src="/assets/her4.jpg"
                 alt="Heritage thumbnail 4"
                 fill
                 className="object-cover"

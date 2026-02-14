@@ -3,17 +3,17 @@ export default function HomeHeadline() {
     <section className="w-full bg-[#F6F1E6] overflow-x-hidden overflow-y-hidden">
       <div
         className="
-          mx-auto w-full max-w-5xl
+          mx-auto w-full max-w-7xl
           px-5 sm:px-8 md:px-10 lg:px-14
           py-0 sm:py-14 md:py-16 lg:py-20 xl:py-18
           flex items-center justify-center
         "
       >
         <h1 className="type-h1-italics-d md:text-left text-[#12385C]">
-          Lorem ipsum dolor sit amet,{" "}
-          <span className="headline-muted">consectetur</span> elit, eiusmod tempor ut{" "}
-          <span className="headline-muted">labore</span> et dolore{" "}
-          <span className="headline-muted">magnaui</span> aliqua
+          From Kashmir’s valleys to your daily ritual Himalayan treasures,{" "}
+          <span className="headline-muted">responsibly</span> sourced,{" "}
+          <span className="headline-muted">carefully</span> preserved,{" "}
+          <span className="headline-muted">delivered</span> with quiet confidence.
         </h1>
       </div>
     </section>
