@@ -34,7 +34,7 @@ export default function Heritage() {
                 Kashmir has long been known for its rare natural resources, from high-altitude shilajit formed over centuries, to saffron grown in the fertile fields of Pampore, to hand-selected dry fruits cultivated in mineral-rich soil.
               </p>
               <p>
-                At PASHM, we work closely with trusted local sources to ensure authenticity at every stage. Our products are not mass-produced commodities. They are carefully sourced, minimally processed, and thoroughly quality-checked before reaching you. We believe heritage should be preserved, not commercialized beyond recognition.
+                At Pashm, we work closely with trusted local sources to ensure authenticity at every stage. Our products are not mass-produced commodities. They are carefully sourced, minimally processed, and thoroughly quality-checked before reaching you. We believe heritage should be preserved, not commercialized beyond recognition.
               </p>
             </div>
 

@@ -2,10 +2,11 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "./ToastContext";
-import { medusa } from "../lib/medusa";
+import { addToCartAction, getCartAction } from "../app/actions";
+import { Cart } from "../lib/shopify";
 
 export type CartItem = {
-  id: string;
+  id: string; // Variant ID
   slug: string;
   title: string;
   price: number;
@@ -38,63 +39,86 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [couponCode, setCouponCode] = useState("");
   const { showToast } = useToast();
 
-  // Load cart from localStorage on mount
+  const mapShopifyCartToItems = (shopifyCart: Cart): CartItem[] => {
+    return shopifyCart.lines.edges.map((edge) => {
+      const node = edge.node;
+      const variant = node.merchandise;
+      const product = variant.product;
+      return {
+        id: variant.id,
+        slug: product.handle,
+        title: product.title,
+        price: parseFloat(variant.price.amount),
+        image: product.featuredImage?.url || "https://placehold.co/600x600?text=No+Image", 
+        quantity: node.quantity,
+      };
+    });
+  };
+
+  // Load cart from server on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem("pashm-cart");
-    if (savedCart) {
-      try {
-        setCart(JSON.parse(savedCart));
-      } catch (e) {
-        console.error("Failed to parse cart", e);
-      }
-    }
-
-    // Try to initialize Medusa cart in background
-    const initMedusaCart = async () => {
-      try {
-        const storedCartId = localStorage.getItem("medusa_cart_id");
-        if (storedCartId) {
-          setCartId(storedCartId);
-        } else {
-          // Create new Medusa cart
-          const response = await medusa.store.cart.create({});
-          if (response.cart) {
-            setCartId(response.cart.id);
-            localStorage.setItem("medusa_cart_id", response.cart.id);
-          }
+    const initCart = async () => {
+        try {
+            const serverCart = await getCartAction();
+            if (serverCart) {
+                setCartId(serverCart.id);
+                setCart(mapShopifyCartToItems(serverCart));
+            } else {
+                // Check local storage specific to this session? 
+                // Mostly rely on server cart if available.
+                const savedCart = localStorage.getItem("pashm-cart");
+                if (savedCart) {
+                    // We don't have sync logic yet, just replace with savedCart if server is empty?
+                    // Actually server is truth. If server empty (new session), local is probably stale or from previous unauthenticated Medusa session.
+                    // Let's clear local if server is active?
+                    // For now, if server returns nothing, we have no cart.
+                    // If server returns cart, we use it.
+                }
+            }
+        } catch (e) {
+            console.error("Failed to load cart", e);
         }
-      } catch (error) {
-        console.log("Medusa cart initialization skipped:", error);
-      }
-    };
-
-    initMedusaCart();
+    }
+    initCart();
   }, []);
 
   useEffect(() => {
     localStorage.setItem("pashm-cart", JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product: Omit<CartItem, "quantity">, quantity = 1) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-      return [...prev, { ...product, quantity }];
-    });
+  const addToCart = async (product: Omit<CartItem, "quantity">, quantity = 1) => {
+    // Optimistic update?
+    const tempCart = [...cart];
+    const existing = tempCart.find((item) => item.id === product.id);
+    if (existing) {
+        existing.quantity += quantity;
+    } else {
+        tempCart.push({ ...product, quantity });
+    }
+    setCart(tempCart);
     showToast(`${product.title} added to cart`);
+
+    try {
+        const updatedCart = await addToCartAction([{ merchandiseId: product.id, quantity }]);
+        if (updatedCart) {
+            setCartId(updatedCart.id);
+            setCart(mapShopifyCartToItems(updatedCart));
+        }
+    } catch (e) {
+        console.error("Add to cart failed", e);
+        showToast("Failed to sync cart with server", "error");
+        // Revert?
+    }
   };
 
   const removeFromCart = (id: string) => {
+    // We haven't implemented removeFromCartAction yet.
+    // Just local update for now or TODO.
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
   const updateQuantity = (id: string, quantity: number) => {
+     // TODO: Implement updateCartLinesAction
     if (quantity < 1) {
       removeFromCart(id);
       return;
@@ -111,6 +135,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const applyCoupon = (code: string) => {
+   // Coupon logic preserved
     const upperCode = code.toUpperCase();
     const validCoupons: Record<string, number> = {
       "PASHM10": 0.10, "PASHM20": 0.20, "WELCOME": 0.15, "FIRST50": 0.50,

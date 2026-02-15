@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Navbar from "../components/pashm-navbar/Navbar"; // Adjust path as needed
+import Navbar from "../components/pashm-navbar/Navbar";
 import Image from "next/image";
+import { BsWhatsapp } from "react-icons/bs";
+import Link from "next/link";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -138,7 +140,15 @@ export default function ContactPage() {
                 {status === "submitting" ? "Sending..." : "Send Message"}
               </button>
             </div>
-
+            <div className="fixed bottom-6 right-6 justify-center">
+              <Link
+                href="https://wa.me/919876543210"
+                style={{ backgroundImage: "url('/assets/buttonimage.png')" }}
+                className="flex justify-center items-center gap-2 type-button-1-d tracking-wide bg-[#25d267] bg-blend-multiply text-[#0E1822FF] py-[10px] px-[10px] rounded-full disabled:opacity-70 disabled:cursor-not-allowed hover:brightness-105 transition-all"
+              >
+                <BsWhatsapp className="text-white" size={30}/>
+              </Link>
+            </div>
             {status === "success" && (
               <div className="text-center p-4 bg-[#E1C882]/20 text-[#12385C] rounded-sm animate-fade-in custom-transition">
                 <p className="type-body-1-d">Thank you! Your message has been sent.</p>

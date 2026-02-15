@@ -101,22 +101,8 @@ export default function CartPage() {
             if (verifyData.success) {
               clearCart();
 
-              fetch("/api/orders/sync-medusa", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                      email: user?.email || "guest@example.com",
-                      items: cart, // Pass full cart with details
-                      total: total,
-                      shipping_address: {
-                          first_name: dbUser?.firstName || "Guest",
-                          last_name: dbUser?.lastName || "User",
-                          address_1: address,
-                          city: "Default City",
-                          postal_code: "110001"
-                      }
-                  })
-              }).catch(err => console.error("Medusa sync failed", err));
+              // Medusa sync removed
+
 
               showToast("Payment Successful! Order placed.", "success");
               router.push("/account");
@@ -183,7 +169,7 @@ export default function CartPage() {
                   <div key={item.id} className="flex items-start gap-10">
                     <div className="relative h-[120px] w-[120px] overflow-hidden rounded-[2px] bg-black/5">
                       <Image
-                        src={item.image}
+                        src={item.image || "https://placehold.co/600x600?text=No+Image"}
                         alt={item.title}
                         fill
                         className="object-cover"

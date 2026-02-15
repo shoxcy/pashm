@@ -1,25 +1,28 @@
 import { notFound } from "next/navigation";
 import ProductView from "./ProductView";
-import { medusa } from "../../../lib/medusa";
-import { mapProductToDetailed } from "../../../lib/map-product";
+import { getProduct } from "../../../lib/shopify";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const product = await getProduct(slug);
+
+  if (!product) return { title: "Product Not Found" };
+
+  return {
+    title: `${product.title} | Pashm`,
+    description: product.description || product.seo?.description || "Shop authentic Kashmiri products.",
+  };
+}
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   
   try {
-    const response = await medusa.store.product.list({
-      handle: slug,
-      limit: 1,
-      region_id: "reg_01KHDS81C9AB0RD3XK6GW46M7D",
-      fields: "*variants.calculated_price,+variants.prices",
-    });
+    const product = await getProduct(slug);
 
-    if (!response.products || response.products.length === 0) {
+    if (!product) {
       notFound();
     }
-
-    const medusaProduct = response.products[0];
-    const product = mapProductToDetailed(medusaProduct);
 
     return <ProductView product={product} />;
   } catch (error) {
