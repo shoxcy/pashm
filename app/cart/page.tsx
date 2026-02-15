@@ -75,6 +75,7 @@ export default function CartPage() {
           })),
           total: total,
           address: address,
+          email: user.email || dbUser?.email,
           razorpayOrderId: orderData.id,
         }),
       });

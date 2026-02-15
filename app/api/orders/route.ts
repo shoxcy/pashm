@@ -27,6 +27,7 @@ export async function POST(request: Request) {
 
         const newOrder = new Order({
             user: data.user,
+            email: data.email,
             items: data.items,
             total: data.total,
             address: data.address,

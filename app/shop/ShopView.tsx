@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Product } from "../../lib/shopify";
 import { useCart } from "../../context/CartContext";
 import { useRouter } from "next/navigation";
+import StockStamp from "../components/StockStamp";
 
 type TabKey = "new" | "best" | "category" | "filters";
 
@@ -56,12 +57,15 @@ function TabButton({
   );
 }
 
-function BlueButton({ children }: { children: React.ReactNode }) {
+function BlueButton({ children, disabled }: { children: React.ReactNode; disabled?: boolean }) {
   return (
     <button
       type="button"
+      disabled={disabled}
       style={{ backgroundImage: "url('/assets/blue-button.png')" }}
-      className="relative w-full rounded-[2px] bg-[#12385C] hover:bg-[#12385C]/90 bg-blend-multiply text-[13px]! md:text-[15px]! tracking-wide py-2 type-button-1-d-blue-button text-white"
+      className={`relative w-full rounded-[2px] bg-[#12385C] bg-blend-multiply text-[13px]! md:text-[15px]! tracking-wide py-2 type-button-1-d-blue-button text-white transition-opacity ${
+        disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-[#12385C]/90"
+      }`}
     >
       {children}
       <span className="absolute inset-x-0 bottom-0 h-[2px] bg-white/20" />
@@ -69,12 +73,15 @@ function BlueButton({ children }: { children: React.ReactNode }) {
   );
 }
 
-function GoldButton({ children }: { children: React.ReactNode }) {
+function GoldButton({ children, disabled }: { children: React.ReactNode; disabled?: boolean }) {
   return (
     <button
       type="button"
+      disabled={disabled}
       style={{ backgroundImage: "url('/assets/buttonimage.png')" }}
-      className="w-full bg-[#E1C882] hover:bg-[#E1C882]/90 bg-blend-multiply text-[#0E1822FF] text-[11px]! md:text-[13px]! md:text-[15px]! pt-[7px] pb-[7px] pr-[54px] pl-[54px] type-button-1-d tracking-wide"
+      className={`w-full bg-[#E1C882] bg-blend-multiply text-[#0E1822FF] text-[11px]! md:text-[13px]! md:text-[15px]! pt-[7px] pb-[7px] pr-[54px] pl-[54px] type-button-1-d tracking-wide transition-opacity ${
+        disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-[#E1C882]/90"
+      }`}
     >
       {children}
     </button>
@@ -88,6 +95,7 @@ function ProductCard({ product }: { product: Product }) {
   const variant = product.variants.edges[0]?.node;
   const priceAmount = parseFloat(variant?.price.amount || "0");
   const image = product.featuredImage?.url || product.images.edges[0]?.node?.url || "https://placehold.co/600x600?text=No+Image";
+  const isOutOfStock = !product.availableForSale;
   
   // Placeholder for ratings until integrated
   const rating = 5;
@@ -113,12 +121,13 @@ function ProductCard({ product }: { product: Product }) {
       <Link href={`/products/${product.handle}`}>
         <div className="flex h-[150px] w-full items-center justify-center cursor-pointer group">
           <div className="relative h-[210px] w-[210px] md:h-[220px] md:w-[220px]">
+            {isOutOfStock && <StockStamp />}
             {image && (
               <Image
                 src={image}
                 alt={product.title}
                 fill
-                className="object-contain drop-shadow-sm"
+                className={`object-contain drop-shadow-sm transition-opacity duration-300 ${isOutOfStock ? 'opacity-40' : ''}`}
               />
             )}
           </div>
@@ -140,11 +149,13 @@ function ProductCard({ product }: { product: Product }) {
         </div>
 
         <div className="space-y-2 pt-3">
-          <div onClick={handleAddToCart}>
-            <BlueButton>Add to Cart</BlueButton>
+          <div onClick={isOutOfStock ? undefined : handleAddToCart}>
+            <BlueButton disabled={isOutOfStock}>
+              {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+            </BlueButton>
           </div>
-          <div onClick={handleBuyNow}>
-            <GoldButton>Buy Now</GoldButton>
+          <div onClick={isOutOfStock ? undefined : handleBuyNow}>
+            <GoldButton disabled={isOutOfStock}>Buy Now</GoldButton>
           </div>
         </div>
       </div>
@@ -365,7 +376,7 @@ export default function ShopView({ products = [] }: { products: Product[] }) {
             </div>
           </div>
         ) : (
-          <div className="mt-25 grid grid-cols-2 gap-x-10 gap-y-20 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="mt-25 grid grid-cols-2 gap-x-10 gap-y-20 md:grid-cols-3">
             {filteredProducts.map((p, index) => (
               <ProductCard
                 key={`${p.id}-${index}`}

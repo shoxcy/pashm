@@ -4,11 +4,11 @@ import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "../../components/pashm-navbar/Navbar";
-import { BiShare } from "react-icons/bi";
 import { BsShareFill } from "react-icons/bs";
 import type { Product } from "../../../lib/shopify";
 import { useCart } from "../../../context/CartContext";
 import { useRouter } from "next/navigation";
+import StockStamp from "../../components/StockStamp";
 
 const RECOMMENDED_PRODUCTS = [
   {
@@ -212,12 +212,13 @@ export default function ProductView({ product }: { product: Product }) {
 
               <div className="relative w-full overflow-hidden rounded-[2px] bg-transparent shadow-none">
                 <div className="relative aspect-square w-full overflow-hidden rounded-[2px]">
+                  {isOutOfStock && <StockStamp />}
                   <Image
                     src={images[selectedImage] || images[0]}
                     alt={product.title}
                     fill
                     priority
-                    className="object-contain" 
+                    className={`object-contain transition-opacity duration-300 ${isOutOfStock ? 'opacity-40' : ''}`} 
                     sizes="(min-width: 1024px) 600px, 100vw"
                   />
                 </div>

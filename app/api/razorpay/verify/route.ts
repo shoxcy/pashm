@@ -1,3 +1,4 @@
+import { createShopifyOrder } from "@/lib/shopifyAdmin";
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import dbConnect from "@/lib/mongodb";
@@ -31,6 +32,20 @@ export async function POST(request: Request) {
                 },
                 { new: true }
             );
+
+            if (order) {
+                try {
+                    await createShopifyOrder({
+                        items: order.items,
+                        total: order.total,
+                        email: order.email || "no-email@provided.com",
+                        address: order.address,
+                        razorpayOrderId: razorpay_order_id
+                    });
+                } catch (shopifyError) {
+                    console.error("Failed to sync to Shopify:", shopifyError);
+                }
+            }
 
             return NextResponse.json({
                 success: true,
